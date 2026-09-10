@@ -7,13 +7,17 @@ import java.util.function.IntConsumer;
  *
  * <p>Neighbor iteration order is deterministic and part of the contract:
  * for identical graph state, implementations must emit the same sequence.</p>
+ * <p>Node count must be non-negative. Counts, connectivity and ordering must remain stable
+ * during a query; this read-only interface does not freeze a mutable implementation.
+ * Duplicate neighbor emissions and self-loops are allowed. Ordering, including duplicates,
+ * is part of the input. Built-in adjacency graphs copy their input rows.</p>
  */
 public interface IntGraph {
 
     /** Number of nodes in this graph. Valid node range is {@code [0, nodeCount())}. */
     int nodeCount();
 
-    /** Emits all outgoing neighbors for {@code nodeId} in deterministic order. */
+    /** Emits valid outgoing neighbors synchronously in deterministic order; must not retain the consumer. */
     void forEachNeighbor(int nodeId, IntConsumer neighborConsumer);
 
     /** Returns true when {@code nodeId} is within {@code [0, nodeCount())}. */

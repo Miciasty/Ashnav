@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 final class AStarPathfinderTest {
 
     @Test
-    void findsPathWithAdmissibleHeuristic() {
+    void findsPathWithConsistentHeuristic() {
         WeightedAdjacencyIntGraph graph = new WeightedAdjacencyIntGraph(
                 new int[][]{
                         {1, 2},

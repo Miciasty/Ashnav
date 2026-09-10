@@ -7,6 +7,14 @@ import java.util.function.IntConsumer;
 
 /**
  * Dense weighted adjacency-list graph backed by {@code int[][]} and {@code double[][]}.
+ * Construction copies all rows in O(V+E) time/storage; later caller array mutations have no effect.
+ * Row order and duplicate emissions are preserved. For repeated neighbor IDs the first
+ * matching cost wins, regardless of later costs: [1,1]/[10,1] has edge cost 10.
+ * This compatibility rule does not model parallel edges; merge by minimum cost before
+ * construction if that is the intended model. Every supplied cost must still be valid.
+ * Self-loops and zero costs are allowed. forEachNeighbor takes O(d) plus callback time,
+ * and edgeCost takes O(d), where d is the row length including duplicates.
+ * Solving dense rows can therefore require O(sum(d*d)) cost-lookup work per full expansion pass.
  */
 public final class WeightedAdjacencyIntGraph implements WeightedIntGraph {
     private final int[][] neighbors;

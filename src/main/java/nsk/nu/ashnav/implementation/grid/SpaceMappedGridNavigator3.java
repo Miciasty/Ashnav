@@ -2,12 +2,17 @@ package nsk.nu.ashnav.implementation.grid;
 
 import nsk.nu.ashcore.api.math.Vector3;
 import nsk.nu.ashgrid.api.grid.indexing.CellIndex3;
+import nsk.nu.ashnav.api.path.GraphPathfinder;
 import nsk.nu.ashnav.api.path.PathSearchResult;
 import nsk.nu.ashnav.api.path.Pathfinder;
 import nsk.nu.ashspace.api.grid.GridSpaceMapper3;
 
 /**
  * World-space bridge for pathfinding over a {@link GridWalkabilityGraph3}.
+ * Points use the mapper's right-handed, Y-up world frame and world units.
+ * Lookup floors (world-origin)/cellSize with no boundary epsilon; negative fractions
+ * map to negative cells. Mapper numeric limits and double rounding apply.
+ * Mapping does not rescale path costs or refresh the graph snapshot.
  */
 public final class SpaceMappedGridNavigator3 {
     private final GridWalkabilityGraph3 graph;
@@ -40,7 +45,14 @@ public final class SpaceMappedGridNavigator3 {
     }
 
     /**
-     * Finds path between world-space points.
+     * Finds path between world-space points using this exact graph and node-ID mapping.
+     * A GraphPathfinder bound to another graph is rejected with IllegalArgumentException.
+     * For a plain Pathfinder (including lambdas), the caller must ensure the same graph/model;
+     * its identity cannot be checked. Existing functional implementations remain supported.
+     * A blocked or outside endpoint returns unreachable(0) without invoking the solver.
+     * A disconnected valid query returns the solver's unreachable result. Use nodeOfWorldPoint
+     * to distinguish missing endpoints. Null inputs throw NullPointerException; invalid numeric
+     * points are rejected by the mapper rather than reported as an unreachable route.
      */
     public PathSearchResult findPath(Pathfinder pathfinder, Vector3 startWorldPoint, Vector3 goalWorldPoint) {
         if (pathfinder == null) {
@@ -51,6 +63,9 @@ public final class SpaceMappedGridNavigator3 {
         }
         if (goalWorldPoint == null) {
             throw new NullPointerException("goalWorldPoint");
+        }
+        if (pathfinder instanceof GraphPathfinder bound && bound.graph() != graph) {
+            throw new IllegalArgumentException("pathfinder must use the navigator graph instance");
         }
 
         int startNodeId = nodeOfWorldPoint(startWorldPoint);

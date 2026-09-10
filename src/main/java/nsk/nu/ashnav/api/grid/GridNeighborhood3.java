@@ -4,6 +4,10 @@ import nsk.nu.ashgrid.api.voxel.neighborhood.Neighborhood3D;
 
 /**
  * Supported deterministic neighborhood sets for voxel-cell graph projection.
+ * N6 connects faces, N18 adds edge diagonals, and N26 also adds corner diagonals.
+ * These offsets only select endpoint cells; they do not enforce clearance between them.
+ * Offset order is copied from the selected Ashgrid version at enum initialization;
+ * later mutations of Ashgrid's public arrays do not change an initialized enum.
  */
 public enum GridNeighborhood3 {
     N6(Neighborhood3D.N6),
@@ -17,7 +21,7 @@ public enum GridNeighborhood3 {
     }
 
     /**
-     * Returns neighbor offsets in deterministic iteration order.
+     * Returns a deep copy of neighbor offsets in deterministic iteration order.
      */
     public int[][] offsets() {
         return copyOffsets(offsets);

@@ -52,7 +52,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-001 — Domknąć warunki optymalności A*
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 3.6, 4.2, 4.5
@@ -67,10 +67,12 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Testy rozdzielają heurystykę spójną, dopuszczalną niespójną i zawyżającą; oczekiwana gwarancja odpowiada wybranemu wariantowi.
-- [ ] Dla obsługiwanych heurystyk koszt zgadza się z Dijkstrą/prostym wzorcem na małych grafach; ścieżki porównuje się osobno od remisów.
-- [ ] API i README opisują h(goal)=0, właściwe jednostki i pozostałe wymagania. Nie twierdzą, że sama lokalna walidacja finite/>=0 sprawdza globalną spójność.
-- [ ] Zmianę kontraktu oceniono pod względem zgodności; nie oznaczono zadania jako naprawione po samym przemianowaniu testu.
+- [x] Testy rozdzielają heurystykę spójną, dopuszczalną niespójną i zawyżającą; oczekiwana gwarancja odpowiada wybranemu wariantowi.
+- [x] Dla obsługiwanych heurystyk koszt zgadza się z Dijkstrą/prostym wzorcem na małych grafach; ścieżki porównuje się osobno od remisów.
+- [x] API i README opisują h(goal)=0, właściwe jednostki i pozostałe wymagania. Nie twierdzą, że sama lokalna walidacja finite/>=0 sprawdza globalną spójność.
+- [x] Zmianę kontraktu oceniono pod względem zgodności; nie oznaczono zadania jako naprawione po samym przemianowaniu testu.
+
+**Realizacja 2026-09-10:** A* ponownie otwiera węzeł wyłącznie przy ściśle niższym g; równy koszt zachowuje pierwszego rodzica. Sprawdzane jest h(goal)=0; dopuszczalność pozostaje warunkiem klienta. Odtworzono koszt 5 zamiast 4, potem potwierdzono 4; test zawyżania zwraca 10 zamiast optimum 2 zgodnie z ograniczeniem gwarancji. Wzorzec Floyd–Warshalla na 80 małych grafach porównuje osobno koszty, poprawność tras i powtarzalność. visitedNodeCount liczy różne węzły. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [NAV-005](../Ashnav/ISSUES.md#nav-005) aktualizuje koszty po wyborze wariantu. Uzasadnienie: materiały CS188 wskazane w ../blackframe.md.
 
@@ -78,7 +80,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-002 — Wyjaśnić model ruchu, koszty i snapshot siatki
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 3.6, 4.1, 4.2, 5.1
@@ -93,10 +95,12 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Mały przykład z dwoma blokującymi bokami pokazuje faktyczne zachowanie przejścia diagonalnego; dokumentacja nie obiecuje kolizyjnej przechodniości postaci.
-- [ ] Test potwierdza relację modyfikacji siatki i już zbudowanego grafu; sposób odświeżania jest opisany.
-- [ ] Przykład trasy bezpośredniej kosztu 10 i dwukrokowej kosztu 2 wyjaśnia różne cele BFS i Dijkstry oraz znaczenie totalCost.
-- [ ] Wskazano, czy koszt oznacza kroki, odległość siatkową czy koszt klienta; mapowanie świata nie zmienia go automatycznie na metry.
+- [x] Mały przykład z dwoma blokującymi bokami pokazuje faktyczne zachowanie przejścia diagonalnego; dokumentacja nie obiecuje kolizyjnej przechodniości postaci.
+- [x] Test potwierdza relację modyfikacji siatki i już zbudowanego grafu; sposób odświeżania jest opisany.
+- [x] Przykład trasy bezpośredniej kosztu 10 i dwukrokowej kosztu 2 wyjaśnia różne cele BFS i Dijkstry oraz znaczenie totalCost.
+- [x] Wskazano, czy koszt oznacza kroki, odległość siatkową czy koszt klienta; mapowanie świata nie zmienia go automatycznie na metry.
+
+**Realizacja 2026-09-10:** Testy sprawdzają diagonalne przejście między dwoma zablokowanymi bokami, niezmienność już zbudowanego grafu po edycji siatki oraz BFS koszt 1 kontra Dijkstra/A* koszt 2 na trasach 10 i 1+1. README i Javadoc określają snapshot, odświeżanie, jednostki oraz obowiązki polityki ruchu. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [GRID-002](../Ashgrid/ISSUES.md#grid-002) oraz [GRID-004](../Ashgrid/ISSUES.md#grid-004) określają sąsiedztwo i mutację; brak potrzeby wdrażania silnika fizyki.
 
@@ -104,7 +108,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-003 — Ustalić spójność grafu w moście world→node
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 3.6, 4.2, 4.3
@@ -119,9 +123,11 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Test z solverem z innego grafu potwierdza wybraną politykę: wykrywanie niezgodności albo wyraźny kontrakt/prowadzący użytkownika interfejs.
-- [ ] Integracja obejmuje przesunięty origin, niejednostkowy cellSize, punkty graniczne i zablokowane komórki.
-- [ ] Opis odróżnia niepoprawne wejście, punkt bez węzła i brak drogi w ramach faktycznie oferowanego API.
+- [x] Test z solverem z innego grafu potwierdza wybraną politykę: wykrywanie niezgodności albo wyraźny kontrakt/prowadzący użytkownika interfejs.
+- [x] Integracja obejmuje przesunięty origin, niejednostkowy cellSize, punkty graniczne i zablokowane komórki.
+- [x] Opis odróżnia niepoprawne wejście, punkt bez węzła i brak drogi w ramach faktycznie oferowanego API.
+
+**Realizacja 2026-09-10:** Dodano GraphPathfinder z tożsamością grafu; wszystkie wbudowane solvery go implementują. Navigator odrzuca inne instancje grafu, także o tej samej liczbie węzłów. Zachowano funkcjonalny Pathfinder i lambdy z jawnym obowiązkiem wspólnego modelu. Testy obejmują różną łączność, origin (-4,8,16), cellSize=2, granice, blokady, niepoprawne wejście i brak trasy. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [SPACE-001](../Ashspace/ISSUES.md#space-001) oraz [SPACE-003](../Ashspace/ISSUES.md#space-003); API koordynować z [NAV-007](../Ashnav/ISSUES.md#nav-007).
 
@@ -129,7 +135,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-004 — Sprawdzić przepełnienie objętości i właściciela storage
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 2, 3.2, 3.6, 4.3, 4.5, 5
@@ -144,9 +150,11 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Skrajne dodatnie wymiary są odrzucane przed alokacją; test powyższego przypadku nie wymaga ogromnej pamięci.
-- [ ] Projekcja obsługuje niepoprawne wymiary wejściowego interfejsu zgodnie z jawnym kontraktem.
-- [ ] Podjęto udokumentowaną decyzję dotyczącą storage; quick start i publiczne konstruktory mają ciągłość albo wersjonowaną migrację.
+- [x] Skrajne dodatnie wymiary są odrzucane przed alokacją; test powyższego przypadku nie wymaga ogromnej pamięci.
+- [x] Projekcja obsługuje niepoprawne wymiary wejściowego interfejsu zgodnie z jawnym kontraktem.
+- [x] Podjęto udokumentowaną decyzję dotyczącą storage; quick start i publiczne konstruktory mają ciągłość albo wersjonowaną migrację.
+
+**Realizacja 2026-09-10:** Wspólny prywatny dla pakietu GridDimensions sprawdza dodatnie wymiary i porównuje bezpieczny iloczyn dwóch wymiarów z limitem podzielonym przez trzeci. Test 2^64 odtwarzał przyjęcie pustego bufora; po poprawce jest odrzucany przed alokacją. Niestandardowe BoundedGrid3i są sprawdzane przed get. IntArrayGrid3i zostaje wspieranym helperem zgodności; nowe ogólne storage należy do Ashgrid.ArrayGrid3i, bez migracji publicznego typu w tym zadaniu. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [GRID-004](../Ashgrid/ISSUES.md#grid-004) oraz [GRID-006](../Ashgrid/ISSUES.md#grid-006); przechowywanie danych należy docelowo do Ashgrid, ale zgodność pozostaje obowiązkiem [NAV-007](../Ashnav/ISSUES.md#nav-007).
 
@@ -154,7 +162,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-005 — Poprawić rachunek czasu i pamięci wyszukiwania
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 4.4, 5.1
@@ -169,9 +177,11 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Tabela i Javadoc podają założenia kosztu forEachNeighbor/edgeCost oraz poprawne granice pamięci kolejki.
-- [ ] Przykład grafu o dużym stopniu wyjaśnia praktyczne ograniczenie; nie zmieniono tylko symboli bez analizy kodu.
-- [ ] Ewentualna optymalizacja lookupu lub iteracji ważonych krawędzi zachowuje semantykę duplikatów/remisów i ma adekwatny pomiar.
+- [x] Tabela i Javadoc podają założenia kosztu forEachNeighbor/edgeCost oraz poprawne granice pamięci kolejki.
+- [x] Przykład grafu o dużym stopniu wyjaśnia praktyczne ograniczenie; nie zmieniono tylko symboli bez analizy kodu.
+- [x] Ewentualna optymalizacja lookupu lub iteracji ważonych krawędzi zachowuje semantykę duplikatów/remisów i ma adekwatny pomiar.
+
+**Realizacja 2026-09-10:** README i Javadoc rozdzielają abstrakcyjny odczyt kosztu od liniowych wierszy, sumę d(v)^2, wpisy kolejki P, powtórne rozwinięcia X(v), callbacki oraz koszt wyniku. Przykład węzła z 10 000 sąsiadów pokazuje około 50 mln porównań. Nie zmieniano lookupu i nie zgłaszano pomiarów wydajności. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [NAV-001](../Ashnav/ISSUES.md#nav-001) i [NAV-006](../Ashnav/ISSUES.md#nav-006); zmiana publicznego sposobu odczytu krawędzi wymaga [NAV-007](../Ashnav/ISSUES.md#nav-007).
 
@@ -179,7 +189,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-006 — Doprecyzować duplikaty krawędzi i dane wpływające na wynik
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 4.1, 4.2, 4.5
@@ -194,9 +204,11 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Przypadek [1,1]/[10,1] i odwrócona kolejność kosztów mają test oraz udokumentowane zachowanie.
-- [ ] Testy zerowych kosztów, pętli własnych, równych tras i zmian kolejności wejścia sprawdzają tylko rzeczywiście przyjęte gwarancje.
-- [ ] API wyjaśnia stan i kolejność będące wejściem, zachowanie sumy kosztów poza zakresem double oraz własność przekazanych tablic.
+- [x] Przypadek [1,1]/[10,1] i odwrócona kolejność kosztów mają test oraz udokumentowane zachowanie.
+- [x] Testy zerowych kosztów, pętli własnych, równych tras i zmian kolejności wejścia sprawdzają tylko rzeczywiście przyjęte gwarancje.
+- [x] API wyjaśnia stan i kolejność będące wejściem, zachowanie sumy kosztów poza zakresem double oraz własność przekazanych tablic.
+
+**Realizacja 2026-09-10:** Zachowano i jawnie opisano pierwszy koszt dla powtórzonego (from,to), wraz z kolejnością emisji; testowane są [10,1] i [1,10]. Sprawdzono kopie tablic, zerowe koszty, pętle, remisy, zmianę kolejności wejścia i przepełnienie sum. Dokumentacja oddziela gwarancje poszczególnych solverów od leksykograficznego minimum całej trasy. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [NAV-001](../Ashnav/ISSUES.md#nav-001), [NAV-005](../Ashnav/ISSUES.md#nav-005) i [NAV-007](../Ashnav/ISSUES.md#nav-007).
 
@@ -204,7 +216,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-007 — Zdefiniować API stabilne dla użytkownika i odświeżyć README
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** DECYZJA  
 **Kontrakt:** sekcje 5, 5.1, 8
@@ -219,9 +231,11 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Quick start kompiluje się na docelowym zestawie zależności i świadomie wybiera BFS lub algorytm kosztowy.
-- [ ] Kontrakty i README są zgodne, a zmiany zachowania mają ocenę wersjonowania/migracji.
-- [ ] Nie nadpisano opublikowanej wersji i nie usunięto publicznych konstruktorów wyłącznie z powodu ich pakietu.
+- [x] Quick start kompiluje się na docelowym zestawie zależności i świadomie wybiera BFS lub algorytm kosztowy.
+- [x] Kontrakty i README są zgodne, a zmiany zachowania mają ocenę wersjonowania/migracji.
+- [x] Nie nadpisano opublikowanej wersji i nie usunięto publicznych konstruktorów wyłącznie z powodu ich pakietu.
+
+**Realizacja 2026-09-10:** README określa wspierane publiczne klasy i konstruktory także w implementation oraz migrację do 2.0.0-SNAPSHOT. Test pakietowy kompiluje i wykonuje pełny quick start. Porównanie javap wykazało zero usuniętych publicznych sygnatur; dawny przykład skompilowany z 1.0.0 uruchomiono z nowym JAR-em. Nie publikowano i nie nadpisywano wydań. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** [CORE-006](../Ashcore/ISSUES.md#core-006), [GRID-006](../Ashgrid/ISSUES.md#grid-006), [SPACE-005](../Ashspace/ISSUES.md#space-005); bieżące zadania algorytmiczne można rozpocząć bez czekania na Ashtrace.
 
@@ -229,7 +243,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 ## NAV-008 — Dostosować CI, pakowanie i dowody wydania
 
-**Status:** OTWARTE  
+**Status:** GOTOWE<br>
 **Priorytet:** P1  
 **Dowód:** INSPEKCJA  
 **Kontrakt:** sekcje 2, 4.5, 6
@@ -244,21 +258,26 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Warunki zamknięcia:**
 
-- [ ] Zapisano wynik mvn -B clean verify z wymaganymi testami oraz wersje JDK/Maven; CI obejmuje faktycznie utrzymywane gałęzie i PR-y.
-- [ ] Główny JAR, sources, Javadoc i wymagane zasoby są sprawdzone. Błędny Javadoc nie jest po cichu uznawany za poprawny; nie trzeba przy tym mechanicznie włączać każdej reguły stylistycznej doclint.
-- [ ] Wskazano używane cele publikacji, tag/wersję i dowody dostępności albo jawnie pozostawiono publikację jako niezweryfikowaną. Sam deploy nie służy jako test poprawek.
-- [ ] Sprawdzono efektywne zależności i ich scope; test integracyjny korzysta z zamierzonej wersji dolnej warstwy, a nie przypadkowej starej kopii z lokalnego Maven.
+- [x] Zapisano wynik mvn -B clean verify z wymaganymi testami oraz wersje JDK/Maven; CI obejmuje faktycznie utrzymywane gałęzie i PR-y.
+- [x] Główny JAR, sources, Javadoc i wymagane zasoby są sprawdzone. Błędny Javadoc nie jest po cichu uznawany za poprawny; nie trzeba przy tym mechanicznie włączać każdej reguły stylistycznej doclint.
+- [x] Wskazano używane cele publikacji, tag/wersję i dowody dostępności albo jawnie pozostawiono publikację jako niezweryfikowaną. Sam deploy nie służy jako test poprawek.
+- [x] Sprawdzono efektywne zależności i ich scope; test integracyjny korzysta z zamierzonej wersji dolnej warstwy, a nie przypadkowej starej kopii z lokalnego Maven.
+
+**Realizacja 2026-09-10:** clean verify przeszło na JDK 21.0.12.1 i Maven 3.9.9: 45 testów + 2 testy artefaktów. Przypięto kompilator/release 21 i narzędzia; Javadoc nie ukrywa błędów. Sprawdzono JAR, sources, Javadoc, notices, class version 65, przykład i scope zależności. CI obejmuje wszystkie gałęzie i PR-y; zdalny HEAD potwierdza master. actionlint przeszedł. Dokładne zależności, integracja snapshotów i niezweryfikowany stan publikacji są zapisane w VERIFICATION.md. Szczegóły i polecenia: [VERIFICATION.md](VERIFICATION.md).
 
 **Powiązania:** Wspólny wzorzec: [TEMPLATE-001](../Ashtemplate/ISSUES.md#template-001) i [TEMPLATE-002](../Ashtemplate/ISSUES.md#template-002). Tę korektę można wykonać niezależnie od napraw algorytmów. Istniejącego numeru wydania nie nadpisuj innym artefaktem.
 
 ## Stan przekazania i dziennik sesji
 
-**Na 2026-09-09:** wszystkie zadania pozostają OTWARTE. Utworzono dokumentację; nie wprowadzono korekt kodu, nie wykonano buildów bibliotek ani publikacji. Nie uznawaj samego dodania ISSUES.md za realizację żadnego zadania.
+**Historia na 2026-09-09:** wszystkie zadania pozostawały OTWARTE. Utworzono dokumentację; nie wprowadzono korekt kodu, nie wykonano buildów bibliotek ani publikacji. Nie uznawaj samego dodania ISSUES.md za realizację żadnego zadania.
 
-**Sugerowany start:** [NAV-001](../Ashnav/ISSUES.md#nav-001); następnie [NAV-002](../Ashnav/ISSUES.md#nav-002), [NAV-003](../Ashnav/ISSUES.md#nav-003) i [NAV-004](../Ashnav/ISSUES.md#nav-004).
+**Historyczny sugerowany start:** [NAV-001](../Ashnav/ISSUES.md#nav-001); następnie [NAV-002](../Ashnav/ISSUES.md#nav-002), [NAV-003](../Ashnav/ISSUES.md#nav-003) i [NAV-004](../Ashnav/ISSUES.md#nav-004).
 
 Po kolejnej sesji dopisz wiersz i uzupełnij statusy odpowiednich zadań. Zapisz także nieudane próby i ograniczenia środowiska; nie opisuj kontroli niewykonanej jako zaliczonej.
 
 | Data / commit | ID i decyzja | Zmiana | Polecenie / test i rzeczywisty wynik | Pozostałe zależności / następny krok |
 | --- | --- | --- | --- | --- |
 | 2026-09-09 / punkt odniesienia powyżej | Wszystkie: OTWARTE | Utworzenie planu korekt | Inspekcja statyczna; testów bibliotek nie uruchomiono | Rozpocząć od wskazanego P1 |
+| 2026-09-10 / snapshot 5dd3d84; commit korekt zawiera ten wpis | NAV-001–NAV-008: GOTOWE | Korekty algorytmu, walidacji, API, dokumentacji i builda wyłącznie w Ashnav | 29 testów bazowych PASS; nowe regresje: 2 FAIL przed poprawką; po poprawkach 45 + 2 PASS w clean verify, także z nowszymi snapshotami; actionlint PASS; zgodność publicznych sygnatur PASS | Brak publikacji, tagu i zdalnego uruchomienia CI; procedura i ograniczenia w VERIFICATION.md |
+
+**Stan bieżący:** NAV-001–NAV-008 zamknięte z dowodami lokalnej weryfikacji. Następny krok wydawniczy: wybrać docelowy zestaw wersji, uruchomić CI na commicie wydania i wykonać osobno autoryzowaną publikację. To nie jest zaległa korekta kodu w tych zadaniach.

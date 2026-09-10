@@ -1,18 +1,27 @@
 package nsk.nu.ashnav.implementation.path;
 
 import nsk.nu.ashnav.api.graph.WeightedIntGraph;
+import nsk.nu.ashnav.api.path.GraphPathfinder;
 import nsk.nu.ashnav.api.path.IntHeuristic;
 import nsk.nu.ashnav.api.path.PathResult;
 import nsk.nu.ashnav.api.path.PathSearchResult;
-import nsk.nu.ashnav.api.path.Pathfinder;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
 
 /**
- * Deterministic A* shortest-path solver for non-negative weighted graphs.
+ * Deterministic A* solver that reopens a node when a strictly cheaper route is found.
+ * Optimality requires an admissible heuristic in edge-cost units and h(goal)=0;
+ * consistency is not required. Local numeric validation cannot prove admissibility.
+ * Equal-cost routes retain the first discovered parent, avoiding zero-cost parent cycles.
+ * Queue order is f score, g score, node ID, then insertion sequence.
+ * Graph and heuristic must remain stable throughout a query. Sums use rounded double
+ * arithmetic without a tolerance; non-finite costs, estimates or sums throw IllegalStateException.
+ * With V nodes, A neighbor emissions across all expansions and P queued states,
+ * time is O(V + A + P log(1+P)) plus graph/heuristic callback costs; memory is O(V+P).
+ * Reopening may make A and P much larger than the graph's edge count.
  */
-public final class AStarPathfinder implements Pathfinder {
+public final class AStarPathfinder implements GraphPathfinder {
     private final WeightedIntGraph graph;
     private final IntHeuristic heuristic;
 
@@ -28,14 +37,26 @@ public final class AStarPathfinder implements Pathfinder {
     }
 
     @Override
+    public WeightedIntGraph graph() {
+        return graph;
+    }
+
+    @Override
     public PathSearchResult findPath(int startNodeId, int goalNodeId) {
         PathAlgorithmsSupport.requireValidQuery(graph, startNodeId, goalNodeId);
+
+        double goalHeuristic = heuristic.estimate(goalNodeId, goalNodeId);
+        PathAlgorithmsSupport.requireFiniteNonNegative(goalHeuristic, "heuristic(goal,goal)");
+        if (goalHeuristic != 0.0) {
+            throw new IllegalStateException("heuristic(goal,goal) must be zero");
+        }
 
         int nodeCount = graph.nodeCount();
         int[] parent = PathAlgorithmsSupport.newParentArray(nodeCount);
         double[] gScore = new double[nodeCount];
         Arrays.fill(gScore, Double.POSITIVE_INFINITY);
         boolean[] closed = new boolean[nodeCount];
+        boolean[] visited = new boolean[nodeCount];
 
         long[] sequenceRef = new long[]{0L};
         PriorityQueue<State> open = new PriorityQueue<>(
@@ -68,7 +89,10 @@ public final class AStarPathfinder implements Pathfinder {
             }
 
             closed[node] = true;
-            visitedNodeCount++;
+            if (!visited[node]) {
+                visited[node] = true;
+                visitedNodeCount++;
+            }
 
             if (node == goalNodeId) {
                 PathResult path = PathAlgorithmsSupport.reconstructPath(
@@ -82,10 +106,6 @@ public final class AStarPathfinder implements Pathfinder {
 
             graph.forEachNeighbor(node, neighbor -> {
                 PathAlgorithmsSupport.requireValidNeighbor(graph, node, neighbor);
-                if (closed[neighbor]) {
-                    return;
-                }
-
                 double edgeCost = graph.edgeCost(node, neighbor);
                 PathAlgorithmsSupport.requireFiniteNonNegative(edgeCost, "edgeCost(" + node + "," + neighbor + ")");
 
@@ -93,11 +113,11 @@ public final class AStarPathfinder implements Pathfinder {
                 PathAlgorithmsSupport.requireFiniteNonNegative(tentativeG, "tentativeG(" + node + "," + neighbor + ")");
 
                 int cmp = Double.compare(tentativeG, gScore[neighbor]);
-                if (cmp > 0) return;
-                if (cmp == 0 && !PathAlgorithmsSupport.betterParent(node, parent[neighbor])) return;
+                if (cmp >= 0) return;
 
                 gScore[neighbor] = tentativeG;
                 parent[neighbor] = node;
+                closed[neighbor] = false;
 
                 double h = heuristic.estimate(neighbor, goalNodeId);
                 PathAlgorithmsSupport.requireFiniteNonNegative(h, "heuristic(" + neighbor + ",goal)");

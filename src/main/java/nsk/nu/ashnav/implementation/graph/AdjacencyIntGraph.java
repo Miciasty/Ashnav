@@ -7,6 +7,9 @@ import java.util.function.IntConsumer;
 
 /**
  * Dense adjacency-list graph backed by {@code int[][]}.
+ * Construction copies all rows in O(V+E) time/storage and preserves row order,
+ * duplicates and self-loops. Later caller mutations do not affect this graph.
+ * Neighbor iteration takes O(d) plus callback time for row length d.
  */
 public final class AdjacencyIntGraph implements IntGraph {
     private final int[][] adjacency;

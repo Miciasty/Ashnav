@@ -1,16 +1,20 @@
 package nsk.nu.ashnav.implementation.path;
 
 import nsk.nu.ashnav.api.graph.IntGraph;
+import nsk.nu.ashnav.api.path.GraphPathfinder;
 import nsk.nu.ashnav.api.path.PathResult;
 import nsk.nu.ashnav.api.path.PathSearchResult;
-import nsk.nu.ashnav.api.path.Pathfinder;
 
 import java.util.ArrayDeque;
 
 /**
- * Deterministic shortest-path solver for unweighted graphs.
+ * Deterministic solver minimizing edge count, including on a weighted graph.
+ * totalCost is the number of edges; supplied weights are never read.
+ * Equal-length routes keep the first discovered parent in neighbor iteration order.
+ * For V nodes and E emitted edges, time is O(V+E) and memory O(V), including the result,
+ * assuming O(1) node checks and O(degree) neighbor iteration.
  */
-public final class BfsPathfinder implements Pathfinder {
+public final class BfsPathfinder implements GraphPathfinder {
     private final IntGraph graph;
 
     public BfsPathfinder(IntGraph graph) {
@@ -18,6 +22,11 @@ public final class BfsPathfinder implements Pathfinder {
             throw new NullPointerException("graph");
         }
         this.graph = graph;
+    }
+
+    @Override
+    public IntGraph graph() {
+        return graph;
     }
 
     @Override

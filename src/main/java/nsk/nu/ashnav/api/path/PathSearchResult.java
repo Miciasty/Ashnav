@@ -2,6 +2,9 @@ package nsk.nu.ashnav.api.path;
 
 /**
  * Deterministic shortest-path query result.
+ * visitedNodeCount counts distinct nodes removed for processing, including a found goal;
+ * repeated A* expansions count once. It is not the queue insertion or expansion count.
+ * UNREACHABLE carries a null path. Grid bridges can return unreachable(0) for missing endpoints.
  */
 public record PathSearchResult(PathStatus status, PathResult path, int visitedNodeCount) {
 

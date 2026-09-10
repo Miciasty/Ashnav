@@ -4,6 +4,9 @@ import java.util.Arrays;
 
 /**
  * Immutable path represented as a node-ID sequence with a total traversal cost.
+ * The constructor and nodes() defensively copy the array in O(L) time and memory for L nodes.
+ * totalCost means edge count for BFS, or a rounded sum of supplied edge costs for weighted solvers.
+ * Node IDs refer to the source graph state; this value does not retain or monitor that graph.
  */
 public record PathResult(int[] nodes, double totalCost) {
 

@@ -11,7 +11,16 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 
 /**
- * Deterministic graph projection over a finite voxel grid using walkability predicate.
+ * Immutable graph snapshot of cells accepted by a walkability predicate.
+ * The grid, its dimensions and the predicate must remain stable during construction;
+ * subsequent source changes have no effect. Rebuild to refresh, including node IDs.
+ * Dimensions must be positive and volume must fit int; allocation can still exhaust memory.
+ * Nodes follow x-fastest, then y, then z order. Edges follow neighborhood offset order.
+ * Only endpoints are checked: diagonals can pass between blocked side cells.
+ * No support, headroom, body clearance or movement rules are inferred.
+ * Costs are Euclidean steps in cell units (1, sqrt(2), sqrt(3)), independent of world cell size.
+ * Construction takes O(W*H*D) time/storage for a constant-cost predicate.
+ * Node lookup, cell lookup, neighbor iteration and edge cost take O(1) for at most 26 offsets.
  */
 public final class GridWalkabilityGraph3 implements WeightedIntGraph {
     private final int width;
@@ -35,10 +44,9 @@ public final class GridWalkabilityGraph3 implements WeightedIntGraph {
         this.height = grid.height();
         this.depth = grid.depth();
 
-        long volume = computeVolume(width, height, depth);
-        requireVolumeFitsInt(volume);
+        int volume = GridDimensions.volume(width, height, depth);
 
-        this.cellToNode = new int[(int) volume];
+        this.cellToNode = new int[volume];
         Arrays.fill(cellToNode, -1);
         this.nodeToCell = buildNodeMapping(grid, walkableValue);
 
@@ -94,6 +102,7 @@ public final class GridWalkabilityGraph3 implements WeightedIntGraph {
         throw new IllegalArgumentException("No directed edge " + fromNodeId + " -> " + toNodeId);
     }
 
+    /** Returns -1 for a blocked cell or coordinates outside the half-open grid bounds. */
     public int nodeOfCell(int x, int y, int z) {
         if (!inside(x, y, z)) {
             return -1;
@@ -136,15 +145,6 @@ public final class GridWalkabilityGraph3 implements WeightedIntGraph {
         if (grid == null) throw new NullPointerException("grid");
         if (walkableValue == null) throw new NullPointerException("walkableValue");
         if (neighborhood == null) throw new NullPointerException("neighborhood");
-    }
-
-    private static long computeVolume(int width, int height, int depth) {
-        return (long) width * (long) height * (long) depth;
-    }
-
-    private static void requireVolumeFitsInt(long volume) {
-        if (volume <= Integer.MAX_VALUE) return;
-        throw new IllegalArgumentException("grid volume exceeds int capacity: " + volume);
     }
 
     private CellIndex3[] buildNodeMapping(BoundedGrid3i grid, IntPredicate walkableValue) {

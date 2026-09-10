@@ -1,17 +1,24 @@
 package nsk.nu.ashnav.implementation.path;
 
 import nsk.nu.ashnav.api.graph.WeightedIntGraph;
+import nsk.nu.ashnav.api.path.GraphPathfinder;
 import nsk.nu.ashnav.api.path.PathResult;
 import nsk.nu.ashnav.api.path.PathSearchResult;
-import nsk.nu.ashnav.api.path.Pathfinder;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
 
 /**
  * Deterministic Dijkstra shortest-path solver for non-negative weighted graphs.
+ * Queue order is distance, node ID, then insertion sequence. Equal distances prefer
+ * a smaller parent ID only before the destination node is settled, not a lexicographically
+ * smallest whole route. Graph state must remain stable throughout the query.
+ * Non-finite evaluated costs or sums throw IllegalStateException; sums use rounded double arithmetic.
+ * For V nodes, E neighbor emissions and P queued states (at most E+1), time is
+ * O(V+E+P log(1+P)) plus edge-cost lookup time, assuming O(degree) iteration and O(1) node checks.
+ * Memory is O(V+P), including the result. Linear row lookups add O(sum(degree(v)^2)) time.
  */
-public final class DijkstraPathfinder implements Pathfinder {
+public final class DijkstraPathfinder implements GraphPathfinder {
     private final WeightedIntGraph graph;
 
     public DijkstraPathfinder(WeightedIntGraph graph) {
@@ -19,6 +26,11 @@ public final class DijkstraPathfinder implements Pathfinder {
             throw new NullPointerException("graph");
         }
         this.graph = graph;
+    }
+
+    @Override
+    public WeightedIntGraph graph() {
+        return graph;
     }
 
     @Override
