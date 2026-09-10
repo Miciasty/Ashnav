@@ -6,9 +6,10 @@ public API. It is excluded from production and the normal test lifecycle.
 
 Baseline: commit `9226c42`, JAR SHA-256
 `9c98db2037a31103b27d4f9b35be6b43d1c43d99267f88e7070bf4903022d146`.
-The measured extension has the weighted-edge/session implementation in this branch; subsequent
-changes only adjust documentation, tests and constructor formatting. No further algorithm changes
-are included in the reported comparison.
+The measured extension has the weighted-edge/session implementation committed in `8f59c9d`;
+changes between the measurement and that commit only adjusted documentation, tests and constructor
+formatting. The later cross-library correction raises dependency versions. This table remains a
+historical comparison with the release dependencies below; it was not remeasured with the newer set.
 
 ## Environment and method
 

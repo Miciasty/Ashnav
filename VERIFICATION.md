@@ -1,8 +1,8 @@
 # Ashnav verification and release record
 
-The latest record is [Navigation extensions](#navigation-extensions), covering NAV-009–NAV-012.
-The preceding correction record below is retained as historical evidence; its test counts and hashes
-identify the earlier build, not the current artifacts.
+The latest record is [Cross-library integration](#cross-library-integration), covering NAV-013 and the
+corrected dependency baseline. Earlier records are retained as historical evidence; their dependency
+versions, test counts and hashes identify those earlier builds, not the current artifacts.
 
 ## 2026-09-10 — Blackframe revision 2.0 corrections
 
@@ -251,3 +251,137 @@ The final default `clean verify` completed **2026-09-10 11:24:11 +02:00**, exit 
 | ashnav-2.0.0-SNAPSHOT.jar | `0fefb479dce232418b10fa013ba1b90b26d00f7b518880588f10a334fccd5ee2` |
 | ashnav-2.0.0-SNAPSHOT-sources.jar | `56f3c990798f056da1dc1d1a75e6f6cc3b457cf92d3d0faf19d8590f94e9e216` |
 | ashnav-2.0.0-SNAPSHOT-javadoc.jar | `6ee815643d5fbd254ecb09a7207a0937b03f28c9dd0f6786a1834fe4d856530e` |
+
+<a id="cross-library-integration"></a>
+
+## 2026-09-10 — Cross-library integration and dependency correction
+
+Work started on `test/ashnav-cross-library-20260910` with checkpoint `ea0c529`, preserving extension
+commit `8f59c9d`. The user authorized integration with the remaining libraries and correction of critical
+defects, including lower-layer defects. Source/POM/test/workflow changes stayed within Ashnav. No sibling
+working tree, branch or commit changed. Ashmesh has no local implementation; Ashtemplate is repository
+tooling and is not an executable spatial dependency.
+
+The same Windows/JDK 21.0.12.1+1/Maven 3.9.9 environment was used. Unlike the earlier integration against
+existing sibling JARs, this run built fresh source copies of all four lower libraries, tested their
+packaged artifacts/examples and installed them only into Ashnav's isolated repository. Copied lower
+POMs select the tested development stack; only Ashgrid needs its Ashcore property changed from 1.0.1 to
+1.1.0-SNAPSHOT. Its source tree is unchanged. Final Ashnav is built with its declared POM unchanged.
+
+### Reproduced failures and correction
+
+The initial complete builds passed separately: Ashcore 144 + 3, Ashgrid 102 + 4, Ashspace 74 + 2,
+Ashtrace 97 + 2 and Ashnav 61 + 2 (both its then-declared releases and a snapshot copy). A combined
+consumer with explicit lower-version overrides also passed 11 scenarios. Those configurations concealed
+the dependency selection problem in an ordinary consumer.
+
+When the consumer declared only Ashnav followed by Ashtrace, the original Ashnav POM selected Ashcore
+1.0.1, Ashgrid 1.2.0 and Ashspace 1.0.0 through Maven's transitive mediation. Compilation failed on
+missing APIs including FrameGridSpaceMapper3, BitGrid3iView and SparseGridView3i. The exact original
+Ashnav JAR/POM was installed into the isolated repository for this reproduction; a rewritten copied POM
+was not accepted as evidence for the declared configuration. `consumer-natural-before.log` includes
+both the dependency tree and compilation failure.
+
+Separately, `LowerLayerBoundaryIntegrationTest` failed against the original POM at 11:40:18 +02:00:
+mapping an axis value of -Double.MIN_VALUE with cellSize=2 returned node 0 rather than -1. The older
+mapper loses the negative value during division. Since both endpoints then map to the same valid node,
+that value can produce a spurious found path. Ashspace's correction was already present in `f652173`.
+The new test checks all three axes, plain/framed mapping, unreachable results and the exact-zero boundary.
+
+Ashnav now declares **Ashcore 1.1.0-SNAPSHOT, Ashgrid 1.3.0-SNAPSHOT and Ashspace 2.0.0-SNAPSHOT**,
+matching the corrected lower stack used by Ashtrace. No production Java changes or public signature
+changes were needed. No lower-layer numeric logic was duplicated in Ashnav. This is a documented
+dependency migration within unpublished Ashnav 2.0.0-SNAPSHOT; it does not overwrite a released version.
+
+After correction, Ashnav's full gate passed **62 + 2** at 11:43:19 +02:00. The same ordinary consumer
+compiled and passed **11 tests** at 11:44:21 +02:00, selecting all three intended lower versions
+transitively. It declares no dependency management or direct dependencies to force those lower versions.
+
+### Repeatable procedure and coverage
+
+[scripts/verify-blackframe.ps1](scripts/verify-blackframe.ps1) creates a fresh directory inside Ashnav,
+copies the five projects, builds them in order with `clean verify` and local install, then runs the
+[combined consumer](integration/blackframe/README.md). It rejects an Ashnav POM that would require
+rewriting its dependency versions. The final complete procedure was invoked from Ashnav as follows:
+
+```powershell
+./scripts/verify-blackframe.ps1 `
+    -Maven '../Ashspace/.verification/apache-maven-3.9.9/bin/mvn.cmd' `
+    -JavaHome (Resolve-Path '../Ashspace/.verification/jdk/jdk-21.0.12.1+1').Path `
+    -Settings '../Ashcore/.verification/settings.xml' -Offline
+```
+
+The 11 consumer tests cover four Ashgrid storage backends (including negative-offset sparse/chunked
+windows), eight seeded maps and all N6/N18/N26 neighborhoods. All graph node pairs are checked against
+Ashgrid component labels as a separate reachability oracle, and weighted Dijkstra is compared with
+stepped zero-heuristic A*. Other checks cover source mutation during a captured search, stepped grid
+preprocessing, nested rotations/translations at three cell sizes, relative local coordinates at a 2^54
+world origin, underflow contracts, frame removal with explicit snapshots and packaged SPI discovery.
+
+Ashtrace integration uses all four broad-phase indexes for a known body-clearance detour, with a rotated
+grid and costs in world units. It checks a subsequent query after removing a dynamic obstacle and uses
+half-size voxel occlusion to constrain a coarse navigation graph. Bounds are the fixture's exact box
+geometry; the tests do not promote general broad-phase candidates to exact shape intersections.
+All five libraries are asserted to load from JARs rather than neighboring target/classes directories.
+
+### Environment limits and CI
+
+Existing plugin/dependency caches were copied into Ashnav with missing files only. An initial offline
+attempt failed because cached plugins recorded repository ID `existing-cache`, absent from the empty
+settings. Reusing the existing Ashcore verification settings enabled that ID; the retry and all later
+runs remained offline. No cache metadata was relabeled and no network resolution was performed.
+Sibling tool binaries/settings were read only; the normal Maven repository was not written.
+
+The CI workflow now checks out the tested lower source commits and runs the same verification script,
+then exports Ashnav's verified main/source/Javadoc artifacts. This avoids assuming remote availability
+of development snapshot artifacts. Both workflows pass actionlint 1.7.7. Remote commit reachability and
+an actual GitHub Actions execution remain unverified; those source commits must be available on GitHub
+before remote CI can run. Local Windows results do not establish cross-platform behavior.
+
+Development snapshots must be provisioned for a local build. A release still needs a verified set of
+published lower versions and the separate release gate. No push, tag, publication or deploy was run.
+The earlier performance table remains tied to its original release-dependency configuration and was
+not rerun for this dependency migration.
+
+### Final gate and artifact identities
+
+The final complete run finished at **2026-09-10 11:47:55 +02:00**, exit **0**, in
+`.verification/cross-library-20260910-114539`. All **503 tests** passed, with zero failures/errors/skips:
+
+| Project | Source commit | Behavior / integration tests | Packaged-artifact tests | Gate completed (+02:00) |
+| --- | --- | ---: | ---: | --- |
+| Ashcore 1.1.0-SNAPSHOT | `e5194402d0c67d2f29909cfa8c6c51ae137644e7` | 144 | 3 | 11:46:04 |
+| Ashgrid 1.3.0-SNAPSHOT | `8199f9be15ff2238514fc392b6580649da42255f` | 102 | 4 | 11:46:29 |
+| Ashspace 2.0.0-SNAPSHOT | `f65217331028873a6b5668440496225e4edbfe0d` | 74 | 2 | 11:46:53 |
+| Ashtrace 2.0.0-SNAPSHOT | `e07168f5d7a7613fa9cbb3c456aaf0ba7e592756` | 97 | 2 | 11:47:18 |
+| Ashnav 2.0.0-SNAPSHOT | checkpoint `ea0c529` plus this correction | 62 | 2 | 11:47:43 |
+| Combined packaged consumer | test sources in this correction | 11 | included in those 11 | 11:47:55 |
+
+The consumer dependency tree selects the exact corrected stack transitively from Ashnav and Ashtrace.
+These are the main JAR hashes from that final source build, not the older cached binaries recorded above:
+
+| Main JAR | SHA-256 |
+| --- | --- |
+| ashcore-1.1.0-SNAPSHOT.jar | `314605c8e4ba3565c6a1f574ca9f84cb8693449acbad61ddfd05b3b37d42d1c2` |
+| ashgrid-1.3.0-SNAPSHOT.jar | `1c7d24e85ec6d87a7db8105e856371684856a8b2aa9fed9058003d45edee4916` |
+| ashspace-2.0.0-SNAPSHOT.jar | `7f0e82346ee9c880a42e68eb24902439af7e9aba5ad7222b39930d9ab3cb0e94` |
+| ashtrace-2.0.0-SNAPSHOT.jar | `753b370463d547b0b88d3b7be7712827527de0c3a3aee8c6d6d6c82552c213b0` |
+| ashnav-2.0.0-SNAPSHOT.jar | `ce4cc5720c405b459e53362f80669a1fdeaf08ccc026a842b8890df76ae80a0b` |
+
+Ashnav's additional final artifacts under that run's `Ashnav/target` are:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| ashnav-2.0.0-SNAPSHOT-sources.jar | `d9eb33da2395f068bcc0f832188491b1ba5b1c99d8965c55a7f636c2ab442858` |
+| ashnav-2.0.0-SNAPSHOT-javadoc.jar | `6ee815643d5fbd254ecb09a7207a0937b03f28c9dd0f6786a1834fe4d856530e` |
+
+The final run retains `Ashcore.log`, `Ashgrid.log`, `Ashspace.log`, `Ashtrace.log`, `Ashnav.log`,
+`consumer.log`, `source-commits.txt`, `source-status.txt`, `artifact-hashes.jsonl` and JUnit XML under
+each copied project's target directory. Earlier successful configurations and reproductions remain in
+`.verification/cross-library-20260910-113230`, including `declared-boundary-before.log`,
+`consumer-natural-before.log`, `Ashnav-fixed.log` and `consumer-natural-after.log`. The settings-ID
+failure is in `.verification/cross-library-20260910-113202/Ashcore.log`.
+
+After the final builds, both workflow files passed actionlint and the Git diff passed whitespace checks.
+All four sibling repositories remained clean at the listed commits. Later edits only completed this
+evidence record and enabled uploading explicitly selected hidden verification logs in CI.

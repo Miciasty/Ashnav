@@ -51,6 +51,7 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 | [NAV-010](#nav-010) | P2 | DECYZJA | Rozdzielić politykę ruchu i kosztów od mapowania siatki |
 | [NAV-011](#nav-011) | P2 | INSPEKCJA | Usprawnić iterację ważonych krawędzi i zmierzyć zmianę |
 | [NAV-012](#nav-012) | P2 | DECYZJA | Powiązać nawigację z lokalnymi układami Ashspace |
+| [NAV-013](#nav-013) | P1 | INSPEKCJA | Sprawdzić wspólnego klienta i uzgodnić zależności dolnych warstw |
 
 <a id="nav-001"></a>
 
@@ -358,6 +359,31 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Dowody:** FrameMappedGridNavigator3IntegrationTest, PackagedArtifactIT oraz [VERIFICATION.md](VERIFICATION.md#navigation-extensions). Powiązania: NAV-003, NAV-010, SPACE-001, SPACE-003.
 
+<a id="nav-013"></a>
+
+## NAV-013 — Sprawdzić wspólnego klienta i uzgodnić zależności dolnych warstw
+
+**Status:** GOTOWE<br>
+**Priorytet:** P1<br>
+**Dowód:** INSPEKCJA i reprodukcja<br>
+**Kontrakt:** sekcje 2, 3.6, 4.3, 4.5, 6
+
+**Powód i zakres:** Użytkownik zlecił integrację z pozostałymi bibliotekami oraz naprawę błędów krytycznych, również w niższych warstwach. Testy pojedynczego Ashnav ze świadomie wybranymi snapshotami nie sprawdzały klienta deklarującego jednocześnie Ashnav i bieżący Ashtrace. Ashnav nadal deklarował Ashcore 1.0.1, Ashgrid 1.2.0 i Ashspace 1.0.0.
+
+**Odtworzone problemy:** Przy Ashnav umieszczonym przed Ashtrace w zależnościach klienta Maven wybierał starsze dolne warstwy. Kompilacja wspólnego klienta kończyła się brakiem m.in. FrameGridSpaceMapper3 i widoków storage. Osobny test graniczny Ashnav wykazał, że Ashspace 1.0.0 mapuje -Double.MIN_VALUE przy cellSize=2 do węzła 0 zamiast poza siatkę. Poprawka mappera istniała już w Ashspace `f652173`; potrzebne było użycie właściwego artefaktu.
+
+**Realizacja 2026-09-10:** POM Ashnav wybiera Ashcore 1.1.0-SNAPSHOT, Ashgrid 1.3.0-SNAPSHOT i Ashspace 2.0.0-SNAPSHOT, zgodnie z bieżącym Ashtrace. Dodano regresję granic w zwykłym zestawie Ashnav i osobny projekt testowy integration/blackframe, deklarujący tylko Ashnav, Ashtrace i testowy JUnit. Skrypt scripts/verify-blackframe.ps1 buduje świeże kopie wszystkich pięciu bibliotek i uruchamia klienta z ich JAR-ów. Nie modyfikuje POM Ashnav w kopii, aby nie ukryć ponownego rozjazdu zależności. CI korzysta z tego skryptu i przypiętych commitów źródeł.
+
+**Warunki zamknięcia:**
+
+- [x] Pełne bramki pięciu bibliotek przechodzą z właściwie rozstrzygniętymi artefaktami, testami pakowania i przykładami README.
+- [x] Wspólny klient przechodzi bez ręcznego nadpisywania dolnych zależności; tree identyfikuje oczekiwany zestaw.
+- [x] 11 scenariuszy obejmuje cztery backendy storage, wszystkie sąsiedztwa, niezależny wzorzec osiągalności, sesje/snapshoty, ramy i granice numeryczne, cztery indeksy Ashtrace oraz ograniczenia ruchu pochodzące z trace/sweep.
+- [x] Regresja ujemnego underflow została odtworzona przed korektą i zaliczona po niej dla obu navigatorów i trzech osi. Nie powielono algebry/mapowania niższych warstw w Ashnav.
+- [x] Zapisano identyfikację źródeł, JAR-ów, wyniki i ograniczenia. Ashmesh nie ma lokalnej implementacji, a Ashtemplate nie jest warstwą wykonawczą. Źródła pozostałych bibliotek pozostały niezmienione.
+
+**Dowody i migracja:** [procedura](integration/blackframe/README.md), [VERIFICATION.md](VERIFICATION.md#cross-library-integration). Zmiana minimalnego zestawu zależności dotyczy nadal niewydanego 2.0.0-SNAPSHOT i wymaga przygotowania snapshotów przed buildem. Nie zmieniono publicznych sygnatur Ashnav. Dostępność przypiętych commitów w GitHub, uruchomienie zdalnego CI i publikacja wymagają osobnego potwierdzenia; nie wynikają z lokalnego PASS. Powiązania: NAV-003, NAV-008, NAV-012, SPACE-003.
+
 ## Stan przekazania i dziennik sesji
 
 **Historia na 2026-09-09:** wszystkie zadania pozostawały OTWARTE. Utworzono dokumentację; nie wprowadzono korekt kodu, nie wykonano buildów bibliotek ani publikacji. Nie uznawaj samego dodania ISSUES.md za realizację żadnego zadania.
@@ -371,5 +397,6 @@ Po kolejnej sesji dopisz wiersz i uzupełnij statusy odpowiednich zadań. Zapisz
 | 2026-09-09 / punkt odniesienia powyżej | Wszystkie: OTWARTE | Utworzenie planu korekt | Inspekcja statyczna; testów bibliotek nie uruchomiono | Rozpocząć od wskazanego P1 |
 | 2026-09-10 / snapshot 5dd3d84; commit korekt zawiera ten wpis | NAV-001–NAV-008: GOTOWE | Korekty algorytmu, walidacji, API, dokumentacji i builda wyłącznie w Ashnav | 29 testów bazowych PASS; nowe regresje: 2 FAIL przed poprawką; po poprawkach 45 + 2 PASS w clean verify, także z nowszymi snapshotami; actionlint PASS; zgodność publicznych sygnatur PASS | Brak publikacji, tagu i zdalnego uruchomienia CI; procedura i ograniczenia w VERIFICATION.md |
 | 2026-09-10 / snapshot 7d3f046; commit uzupełnień zawiera ten wpis | NAV-009–NAV-012: GOTOWE | Sesje, polityki grafu, ważona iteracja i lokalne ramy; wyłącznie Ashnav | 61 + 2 PASS z zależnościami z POM i snapshotami; dwa przykłady README PASS; 0 usuniętych publicznych sygnatur; stary skompilowany graf klienta PASS; pomiar w BENCHMARKS.md | Te same granice publikacji; sesje mają budżet zdjęć z kolejki, a ramy są przechwytywane przy konstrukcji |
+| 2026-09-10 / snapshot ea0c529; commit integracji zawiera ten wpis | NAV-013: GOTOWE | Uzgodnienie zależności, regresja granic i wspólny klient pięciu bibliotek | Przed poprawką: regresja granic FAIL i klient nie kompiluje się przez stare zależności; po korekcie: wszystkie bramki bibliotek i 11 scenariuszy klienta PASS | Snapshoty wymagają przygotowania; zdalne CI/publikacja nie były wykonywane |
 
-**Stan bieżący:** NAV-001–NAV-012 zamknięte z dowodami lokalnej weryfikacji. Następny krok wydawniczy: wybrać docelowy zestaw wersji, uruchomić CI na commicie wydania i wykonać osobno autoryzowaną publikację. To nie jest zaległa korekta kodu w tych zadaniach.
+**Stan bieżący:** NAV-001–NAV-013 zamknięte z dowodami lokalnej weryfikacji. Następny krok wydawniczy: wybrać docelowy zestaw wydanych wersji, uruchomić CI na commicie wydania i wykonać osobno autoryzowaną publikację. To nie jest zaległa korekta kodu w tych zadaniach.

@@ -28,9 +28,12 @@ Ashnav cannot infer a character's physical ability from the graph.
 
 ## Requirements and quick start
 
-Use JDK 21 or newer and Maven 3.9.9 (the verified version). Production dependencies are Ashcore 1.0.1,
-Ashgrid 1.2.0 and Ashspace 1.0.0; JUnit is test-scoped. These explicit release dependencies are retained
-for compatibility. Newer sibling snapshots are a separate integration configuration, not silently selected.
+Use JDK 21 or newer and Maven 3.9.9 (the verified version). This development version requires Ashcore
+1.1.0-SNAPSHOT, Ashgrid 1.3.0-SNAPSHOT and Ashspace 2.0.0-SNAPSHOT; JUnit is test-scoped. These versions
+include corrected numeric boundaries and agree with the current Ashtrace dependency set. Their remote
+publication is not established; provision the development artifacts before building. The
+[cross-library verification guide](integration/blackframe/README.md) builds isolated copies of local
+checkouts and tests a consumer of Ashnav and Ashtrace without overriding their transitive dependencies.
 
 Build this checkout with `mvn -B clean verify`. To use the development build in another local project,
 run `mvn -B install` after verification and select its coordinates:
@@ -340,8 +343,12 @@ same graph as the navigator. Revalidate any golden route sequences rather than a
 The later navigation additions retain 2.0.0-SNAPSHOT while this release is in development. They preserve
 existing signatures and result ties; blocking searches now use the same engine as stepped sessions.
 Custom weighted graphs inherit forEachEdge by default. The original navigator constructor remains;
-use its new graph/mapping overload for views. Frame navigation uses Ashspace 1.0.0 API and also has
-integration coverage with the current sibling snapshots. No serialized wire format is defined. Releases follow Semantic Versioning; existing artifacts must not be overwritten.
+use its new graph/mapping overload for views. The cross-library correction raises the dependency baseline
+to the snapshots listed above. Ashspace 1.0.0 can round a tiny negative point outside the grid into cell 0;
+its replacement preserves the boundary side. Older lower-layer dependencies can also hide APIs required
+by current Ashtrace when Maven resolves a combined consumer. Do not force those older versions into this
+development configuration. Ashnav's public signatures remain unchanged by this dependency correction.
+No serialized wire format is defined. Releases follow Semantic Versioning; existing artifacts must not be overwritten.
 
 ## Glossary
 

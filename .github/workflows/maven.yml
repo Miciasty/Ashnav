@@ -13,15 +13,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout tested Ashcore sources
+        uses: actions/checkout@v4
+        with:
+          repository: Miciasty/Ashcore
+          ref: e5194402d0c67d2f29909cfa8c6c51ae137644e7
+          path: .verification/sources/Ashcore
+
+      - name: Checkout tested Ashgrid sources
+        uses: actions/checkout@v4
+        with:
+          repository: Miciasty/Ashgrid
+          ref: 8199f9be15ff2238514fc392b6580649da42255f
+          path: .verification/sources/Ashgrid
+
+      - name: Checkout tested Ashspace sources
+        uses: actions/checkout@v4
+        with:
+          repository: Miciasty/Ashspace
+          ref: f65217331028873a6b5668440496225e4edbfe0d
+          path: .verification/sources/Ashspace
+
+      - name: Checkout tested Ashtrace sources
+        uses: actions/checkout@v4
+        with:
+          repository: Miciasty/Ashtrace
+          ref: e07168f5d7a7613fa9cbb3c456aaf0ba7e592756
+          path: .verification/sources/Ashtrace
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: maven
 
-      - name: Verify tests, packaged artifacts and README example
-        run: mvn -B -ntp clean verify --file pom.xml
+      - name: Verify libraries, packaged artifacts and combined consumer
+        shell: pwsh
+        run: |
+          ./scripts/verify-blackframe.ps1 -LibrariesDirectory .verification/sources
+          $run = (Get-Content .verification/cross-library-run.txt -Raw).Trim()
+          [xml]$pom = Get-Content pom.xml -Raw
+          $name = "ashnav-$($pom.project.version)"
+          New-Item -ItemType Directory -Path target -Force | Out-Null
+          foreach ($suffix in '.jar', '-sources.jar', '-javadoc.jar') {
+            Copy-Item -LiteralPath "$run/Ashnav/target/$name$suffix" -Destination target
+          }
+
+      - name: Upload verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blackframe-verification-${{ github.sha }}
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            .verification/cross-library-*/**/*.log
+            .verification/cross-library-*/**/TEST-*.xml
+            .verification/cross-library-*/source-*.txt
+            .verification/cross-library-*/artifact-hashes.jsonl
 
       - name: Identify verified artifacts
         id: artifact
