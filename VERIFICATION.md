@@ -1,5 +1,9 @@
 # Ashnav verification and release record
 
+The latest record is [Navigation extensions](#navigation-extensions), covering NAV-009–NAV-012.
+The preceding correction record below is retained as historical evidence; its test counts and hashes
+identify the earlier build, not the current artifacts.
+
 ## 2026-09-10 — Blackframe revision 2.0 corrections
 
 Development coordinates: `dev.nasaka.blackframe:ashnav:2.0.0-SNAPSHOT`.
@@ -170,3 +174,80 @@ Logs and scripts remain locally under `.verification/`: `baseline.log`, `regress
 `verify-updated-layers.ps1`, `updated-layers.log`, `verify-compatibility.ps1` and `compatibility.log`.
 JUnit XML reports are in `target/surefire-reports` and `target/failsafe-reports`.
 Remote CI, publication, performance benchmarks and cross-platform repeatability were not executed.
+
+<a id="navigation-extensions"></a>
+
+## 2026-09-10 — Navigation extensions
+
+The user authorized the four additions identified after the initial corrections: controlled search,
+composable movement/cost policies, efficient weighted-edge iteration and local coordinate-frame mapping.
+NAV-009 through NAV-012 are complete within Ashnav. The new branch is
+`feat/ashnav-controlled-search-20260910`; checkpoint `7d3f046` records the clean state before implementation,
+following correction commit `9226c42`. No sibling files, branches or commits changed.
+
+Coordinates remain `dev.nasaka.blackframe:ashnav:2.0.0-SNAPSHOT`. This adds APIs to the same unpublished
+development version. The POM, production dependencies, workflows and publishing configuration are unchanged.
+The environment and offline `clean verify` command above were reused. All new builds, copied projects,
+compatibility probes and measurements stayed under Ashnav; existing sibling tool binaries were read only.
+
+### Accepted contracts
+
+| Issue | Implementation and boundaries |
+| --- | --- |
+| NAV-009 | All three solvers implement `ResumablePathfinder`; blocking calls drain the same session engine. `advance` budgets queue removals including stale entries. Pausing leaves IN_PROGRESS; cancel between calls produces CANCELLED; callback failure is rethrown and leaves FAILED. Only FOUND/UNREACHABLE have a result. Sessions are confined to one thread, reject reentrant mutation and require stable graph/policy/heuristic data across pauses. An outgoing row is atomic; O(V) initialization, callbacks and final path reconstruction are not a wall-clock or memory budget. Working storage remains until the caller releases the session. Existing path statuses, tie rules and distinct visited-node counts remain. |
+| NAV-010 | `PolicyWeightedIntGraph` filters directed edges and maps finite nonnegative costs, preserving IDs, iteration order and duplicate semantics. `GridNodeMapping3` separates node/cell correspondence from connectivity. Both navigators can bind a policy graph and separate mapping. Matching counts are checked; matching ID meanings are the caller's contract. BFS avoids cost policies. Policy data is retained as a live view and must remain stable during a query/session. |
+| NAV-011 | `WeightedIntGraph.forEachEdge` has a compatible default. Native adjacency/grid implementations emit node/cost pairs directly; weighted solvers use them. Adjacency construction validates every original cost before normalizing duplicate costs to the first entry, preserving emissions and order. Native row iteration is O(d); standalone `edgeCost` stays linear and custom defaults retain their lookup cost. [BENCHMARKS.md](BENCHMARKS.md) records the measured blocking-call comparison and the initial regression that prompted lower allocation overhead. |
+| NAV-012 | `FrameMappedGridNavigator3` uses Ashspace to capture transforms for all defined frames at construction. Points and cell centers can use local or world frames, and endpoints can use different frames. Origin/cell size belong to the grid frame; costs keep their units. Later frame edits/removals do not affect the captured view; new IDs require a new navigator. Capture requires stable frames and takes O(F*h) time/O(F) retained memory. Numeric guarantees remain those of the selected Ashspace version. |
+
+### Verification results
+
+| Check | Actual result |
+| --- | --- |
+| Full default dependency suite | 61 behavior tests + 2 packaged-artifact tests PASS, 0 failures/errors/skipped |
+| Identified sibling snapshots | Same 61 + 2 PASS; completed 2026-09-10 11:18:23 +02:00, exit 0 |
+| README examples | Both complete Java examples compile with release 21 against packaged JARs and execute in isolated class loaders; output `nodes=3, cost=2.0` and `detour cost=4.0` |
+| Artifacts | All 26 supported public types present in main/source/Javadoc JARs; metadata, notices, class version 65 and absence of bundled JUnit/SPI checked |
+| API comparison | `javap -public` for all 17 baseline public types found 0 removed public member signatures |
+| Previously compiled custom graph | An implementation of the old `WeightedIntGraph` was compiled against the baseline JAR, then run unchanged with the new JAR; Dijkstra uses the inherited default method and returns cost 2.0 |
+| Performance comparison | Three fresh JVM runs per version, three fixtures and two solvers; final measured medians have lower time and allocation for all six combinations. Limits and reproduction are in BENCHMARKS.md. |
+
+`PathSearchSessionTest` covers cancellation, failed callbacks, stale entries, reopening, exact counters,
+zero/negative budgets, terminal states, independent sessions, reentrancy and whole-row processing.
+`PathfinderContractsTest` additionally compares each budgeted result with its blocking result for all
+start/goal pairs in the existing 80 seeded graphs, alongside the Floyd–Warshall cost oracle.
+`WeightedEdgeIterationTest` checks duplicate order/first cost, invalid later duplicate values, all grid
+neighborhoods, the legacy default and solvers consuming paired edges. `PolicyGraphIntegrationTest` covers
+weighted detours, directed restrictions, caller-defined diagonal blocking, independent mappings and
+cost-callback behavior. `FrameMappedGridNavigator3IntegrationTest` covers rotation, translation,
+nonunit cells, distinct endpoint frames, boundaries, invalid coordinates and captured-frame refresh.
+
+The snapshot check used `.verification/extensions-layers`, a copy of Ashnav sources, tests, POM and README.
+Only that copied POM selected Ashcore 1.1.0-SNAPSHOT, Ashgrid 1.3.0-SNAPSHOT and Ashspace 2.0.0-SNAPSHOT.
+Its dependency tree confirms those versions and test-only JUnit. The exact cached release/snapshot JAR
+hashes are the ones in the earlier [dependency table](#exact-dependency-artifacts); sibling checkouts
+remain clean at `e519440`, `8199f9b` and `f652173`, respectively. No lower library was rebuilt or modified.
+
+The compatibility and benchmark baseline is the prior corrected Ashnav JAR, SHA-256
+`9c98db2037a31103b27d4f9b35be6b43d1c43d99267f88e7070bf4903022d146`, retained as
+`.verification/ashnav-before-extensions.jar`. These checks support the documented compatibility;
+they do not establish every possible consumer's behavior or reflection assumptions.
+
+Logs/scripts: `.verification/extensions-verify-first.log`, `extensions-verify-final.log`,
+`verify-extensions-layers.ps1`, `extensions-layers.log`, `check-extension-api.ps1`,
+`extensions-api.log`, `LegacyWeightedConsumer.java`, `run-benchmark.ps1`, `benchmark-initial.csv`
+and `benchmark.csv`. The first complete gate passed at 11:15:03 +02:00. After that gate and the snapshot
+check, remaining changes affected constructor whitespace, line endings and the issue/verification records.
+The final default gate below verifies the packaged final source tree. The recorded benchmark precedes
+documentation/test/formatting edits; the measured algorithms are unchanged.
+
+No online resolution, dependency addition, publication, tag, push or remote CI run was performed for
+these extensions. Cross-platform reproducibility and strict wall-clock scheduling were not tested.
+
+The final default `clean verify` completed **2026-09-10 11:24:11 +02:00**, exit **0**, with
+**61 + 2 tests passed**, no failures/errors/skips. These are the resulting artifacts:
+
+| Final file in target/ | SHA-256 |
+| --- | --- |
+| ashnav-2.0.0-SNAPSHOT.jar | `0fefb479dce232418b10fa013ba1b90b26d00f7b518880588f10a334fccd5ee2` |
+| ashnav-2.0.0-SNAPSHOT-sources.jar | `56f3c990798f056da1dc1d1a75e6f6cc3b457cf92d3d0faf19d8590f94e9e216` |
+| ashnav-2.0.0-SNAPSHOT-javadoc.jar | `6ee815643d5fbd254ecb09a7207a0937b03f28c9dd0f6786a1834fe4d856530e` |

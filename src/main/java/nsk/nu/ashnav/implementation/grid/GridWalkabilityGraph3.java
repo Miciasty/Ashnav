@@ -3,7 +3,9 @@ package nsk.nu.ashnav.implementation.grid;
 import nsk.nu.ashgrid.api.grid.indexing.CellIndex3;
 import nsk.nu.ashgrid.api.raster.BoundedGrid3i;
 import nsk.nu.ashnav.api.graph.WeightedIntGraph;
+import nsk.nu.ashnav.api.graph.IntWeightedEdgeConsumer;
 import nsk.nu.ashnav.api.grid.GridNeighborhood3;
+import nsk.nu.ashnav.api.grid.GridNodeMapping3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +24,7 @@ import java.util.function.IntPredicate;
  * Construction takes O(W*H*D) time/storage for a constant-cost predicate.
  * Node lookup, cell lookup, neighbor iteration and edge cost take O(1) for at most 26 offsets.
  */
-public final class GridWalkabilityGraph3 implements WeightedIntGraph {
+public final class GridWalkabilityGraph3 implements WeightedIntGraph, GridNodeMapping3 {
     private final int width;
     private final int height;
     private final int depth;
@@ -84,6 +86,18 @@ public final class GridWalkabilityGraph3 implements WeightedIntGraph {
     }
 
     @Override
+    public void forEachEdge(int nodeId, IntWeightedEdgeConsumer edgeConsumer) {
+        if (edgeConsumer == null) throw new NullPointerException("edgeConsumer");
+        if (!isValidNode(nodeId)) throw new IllegalArgumentException("nodeId out of range: " + nodeId);
+        CellIndex3 cell = nodeToCell[nodeId];
+        for (int i = 0; i < offsets.length; i++) {
+            int neighborId = nodeOfCell(cell.x() + offsets[i][0], cell.y() + offsets[i][1], cell.z() + offsets[i][2]);
+            if (neighborId < 0) continue;
+            edgeConsumer.accept(neighborId, offsetCosts[i]);
+        }
+    }
+
+    @Override
     public double edgeCost(int fromNodeId, int toNodeId) {
         if (!isValidNode(fromNodeId)) {
             throw new IllegalArgumentException("fromNodeId out of range: " + fromNodeId);
@@ -103,6 +117,7 @@ public final class GridWalkabilityGraph3 implements WeightedIntGraph {
     }
 
     /** Returns -1 for a blocked cell or coordinates outside the half-open grid bounds. */
+    @Override
     public int nodeOfCell(int x, int y, int z) {
         if (!inside(x, y, z)) {
             return -1;
@@ -110,6 +125,7 @@ public final class GridWalkabilityGraph3 implements WeightedIntGraph {
         return cellToNode[cellIndex(x, y, z)];
     }
 
+    @Override
     public CellIndex3 cellOfNode(int nodeId) {
         if (!isValidNode(nodeId)) {
             throw new IllegalArgumentException("nodeId out of range: " + nodeId);

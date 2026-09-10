@@ -2,11 +2,21 @@ package nsk.nu.ashnav.implementation.path;
 
 import nsk.nu.ashnav.api.graph.IntGraph;
 import nsk.nu.ashnav.api.path.PathResult;
+import nsk.nu.ashnav.api.path.PathSearchResult;
+import nsk.nu.ashnav.api.path.PathSearchSession;
+import nsk.nu.ashnav.api.path.PathSearchState;
 
 import java.util.Arrays;
 
 final class PathAlgorithmsSupport {
     private PathAlgorithmsSupport() {
+    }
+
+    static PathSearchResult finish(PathSearchSession session) {
+        while (session.state() == PathSearchState.IN_PROGRESS) {
+            session.advance(Integer.MAX_VALUE);
+        }
+        return session.result();
     }
 
     static void requireValidQuery(IntGraph graph, int startNodeId, int goalNodeId) {
@@ -33,6 +43,11 @@ final class PathAlgorithmsSupport {
         if (!Double.isFinite(value) || value < 0.0) {
             throw new IllegalStateException(name + " must be finite and >= 0");
         }
+    }
+
+    static void requireFiniteNonNegative(double value, String name, int fromNodeId, int toNodeId) {
+        if (Double.isFinite(value) && value >= 0.0) return;
+        throw new IllegalStateException(name + "(" + fromNodeId + "," + toNodeId + ") must be finite and >= 0");
     }
 
     static boolean betterParent(int candidateParent, int existingParent) {

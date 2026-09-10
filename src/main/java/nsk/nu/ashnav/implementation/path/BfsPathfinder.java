@@ -1,20 +1,19 @@
 package nsk.nu.ashnav.implementation.path;
 
 import nsk.nu.ashnav.api.graph.IntGraph;
-import nsk.nu.ashnav.api.path.GraphPathfinder;
-import nsk.nu.ashnav.api.path.PathResult;
 import nsk.nu.ashnav.api.path.PathSearchResult;
-
-import java.util.ArrayDeque;
+import nsk.nu.ashnav.api.path.PathSearchSession;
+import nsk.nu.ashnav.api.path.ResumablePathfinder;
 
 /**
  * Deterministic solver minimizing edge count, including on a weighted graph.
  * totalCost is the number of edges; supplied weights are never read.
  * Equal-length routes keep the first discovered parent in neighbor iteration order.
  * For V nodes and E emitted edges, time is O(V+E) and memory O(V), including the result,
- * assuming O(1) node checks and O(degree) neighbor iteration.
+ * assuming O(1) node checks and O(degree) neighbor iteration. Trivial queries use O(1).
+ * Graph state must remain stable throughout a query/session, including pauses.
  */
-public final class BfsPathfinder implements GraphPathfinder {
+public final class BfsPathfinder implements ResumablePathfinder {
     private final IntGraph graph;
 
     public BfsPathfinder(IntGraph graph) {
@@ -30,41 +29,12 @@ public final class BfsPathfinder implements GraphPathfinder {
     }
 
     @Override
+    public PathSearchSession startSearch(int startNodeId, int goalNodeId) {
+        return new BfsPathSearchSession(graph, startNodeId, goalNodeId);
+    }
+
+    @Override
     public PathSearchResult findPath(int startNodeId, int goalNodeId) {
-        PathAlgorithmsSupport.requireValidQuery(graph, startNodeId, goalNodeId);
-
-        if (startNodeId == goalNodeId) {
-            PathResult path = new PathResult(new int[]{startNodeId}, 0.0);
-            return PathSearchResult.found(path, 1);
-        }
-
-        int nodeCount = graph.nodeCount();
-        boolean[] discovered = new boolean[nodeCount];
-        int[] parent = PathAlgorithmsSupport.newParentArray(nodeCount);
-        ArrayDeque<Integer> queue = new ArrayDeque<>();
-        discovered[startNodeId] = true;
-        queue.add(startNodeId);
-
-        int visitedNodeCount = 0;
-        while (!queue.isEmpty()) {
-            int current = queue.removeFirst();
-            visitedNodeCount++;
-
-            if (current == goalNodeId) {
-                PathResult path = PathAlgorithmsSupport.reconstructPath(parent, startNodeId, goalNodeId, 0.0);
-                double totalCost = path.length() - 1;
-                return PathSearchResult.found(new PathResult(path.nodes(), totalCost), visitedNodeCount);
-            }
-
-            graph.forEachNeighbor(current, neighbor -> {
-                PathAlgorithmsSupport.requireValidNeighbor(graph, current, neighbor);
-                if (discovered[neighbor]) return;
-                discovered[neighbor] = true;
-                parent[neighbor] = current;
-                queue.addLast(neighbor);
-            });
-        }
-
-        return PathSearchResult.unreachable(visitedNodeCount);
+        return PathAlgorithmsSupport.finish(startSearch(startNodeId, goalNodeId));
     }
 }

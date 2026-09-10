@@ -1,6 +1,7 @@
 package nsk.nu.ashnav.implementation.graph;
 
 import nsk.nu.ashnav.api.graph.WeightedIntGraph;
+import nsk.nu.ashnav.api.graph.IntWeightedEdgeConsumer;
 
 import java.util.Arrays;
 import java.util.function.IntConsumer;
@@ -14,7 +15,7 @@ import java.util.function.IntConsumer;
  * construction if that is the intended model. Every supplied cost must still be valid.
  * Self-loops and zero costs are allowed. forEachNeighbor takes O(d) plus callback time,
  * and edgeCost takes O(d), where d is the row length including duplicates.
- * Solving dense rows can therefore require O(sum(d*d)) cost-lookup work per full expansion pass.
+ * forEachEdge reads each pair directly in O(d), without repeated cost lookups.
  */
 public final class WeightedAdjacencyIntGraph implements WeightedIntGraph {
     private final int[][] neighbors;
@@ -26,9 +27,21 @@ public final class WeightedAdjacencyIntGraph implements WeightedIntGraph {
         int nodeCount = neighbors.length;
         this.neighbors = new int[nodeCount][];
         this.costs = new double[nodeCount][];
+        int[] seenFrom = new int[nodeCount];
+        Arrays.fill(seenFrom, -1);
+        double[] firstCost = new double[nodeCount];
 
         for (int nodeId = 0; nodeId < nodeCount; nodeId++) {
             Row row = copyValidatedRow(neighbors, costs, nodeId, nodeCount);
+            for (int i = 0; i < row.neighbors.length; i++) {
+                int neighbor = row.neighbors[i];
+                if (seenFrom[neighbor] == nodeId) {
+                    row.costs[i] = firstCost[neighbor];
+                } else {
+                    seenFrom[neighbor] = nodeId;
+                    firstCost[neighbor] = row.costs[i];
+                }
+            }
             this.neighbors[nodeId] = row.neighbors;
             this.costs[nodeId] = row.costs;
         }
@@ -51,6 +64,17 @@ public final class WeightedAdjacencyIntGraph implements WeightedIntGraph {
         int[] row = neighbors[nodeId];
         for (int i = 0; i < row.length; i++) {
             neighborConsumer.accept(row[i]);
+        }
+    }
+
+    @Override
+    public void forEachEdge(int nodeId, IntWeightedEdgeConsumer edgeConsumer) {
+        if (edgeConsumer == null) throw new NullPointerException("edgeConsumer");
+        if (!isValidNode(nodeId)) throw new IllegalArgumentException("nodeId out of range: " + nodeId);
+        int[] row = neighbors[nodeId];
+        double[] rowCosts = costs[nodeId];
+        for (int i = 0; i < row.length; i++) {
+            edgeConsumer.accept(row[i], rowCosts[i]);
         }
     }
 

@@ -3,6 +3,9 @@ package nsk.nu.ashnav.implementation.path;
 import nsk.nu.ashnav.api.path.PathSearchResult;
 import nsk.nu.ashnav.api.path.PathStatus;
 import nsk.nu.ashnav.api.path.Pathfinder;
+import nsk.nu.ashnav.api.path.PathSearchSession;
+import nsk.nu.ashnav.api.path.PathSearchState;
+import nsk.nu.ashnav.api.path.ResumablePathfinder;
 import nsk.nu.ashnav.implementation.graph.WeightedAdjacencyIntGraph;
 import org.junit.jupiter.api.Test;
 
@@ -75,6 +78,11 @@ final class PathfinderContractsTest {
                 for (int start = 0; start < size; start++) {
                     for (Pathfinder solver : solvers) {
                         PathSearchResult result = solver.findPath(start, goal);
+                        PathSearchSession session = ((ResumablePathfinder) solver).startSearch(start, goal);
+                        while (session.state() == PathSearchState.IN_PROGRESS) {
+                            session.advance(1 + (int) (session.queuePopCount() % 3));
+                        }
+                        assertEquals(result, session.result());
                         if (!Double.isFinite(distance[start][goal])) {
                             assertEquals(PathStatus.UNREACHABLE, result.status());
                             continue;

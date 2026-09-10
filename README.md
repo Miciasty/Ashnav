@@ -20,9 +20,10 @@ or simulate collisions. Ashgrid owns voxel storage; Ashspace owns coordinate con
 > Grid projection checks only the two endpoint cells. In a 2-by-2 horizontal square with only opposite
 > corners walkable, N18/N26 connect those corners even when both side cells are blocked. N6 does not.
 
-For movement restrictions, implement `WeightedIntGraph` with only permitted edges and their costs.
-A wrapper around a grid graph can filter each `(from,to)` pair in `forEachNeighbor` and delegate the cost
-of accepted edges. The movement policy and any world data it reads must remain unchanged during a query.
+For movement restrictions, use `PolicyWeightedIntGraph` or implement `WeightedIntGraph`.
+The policy view filters directed `(from,to)` edges and replaces their costs without renumbering nodes.
+Use its base grid as `GridNodeMapping3` in the navigator constructor that accepts a separate graph and mapping.
+The policies and any world data they read must remain unchanged throughout a query, including session pauses.
 Ashnav cannot infer a character's physical ability from the graph.
 
 ## Requirements and quick start
@@ -138,10 +139,18 @@ The world bridge uses Ashspace's right-handed coordinates with Y up. Lookup is
 There is no boundary epsilon: at zero origin and unit size, -0.2 maps to cell -1. Points must be finite
 and mapped indices must fit int. Large translations or tiny cell sizes can lose cell detail.
 `worldCenterOfNode` returns the mapped cell center; precision does not guarantee a round trip at extremes.
-Local-frame points must first be converted to the mapper's world frame using Ashspace.
+`FrameMappedGridNavigator3` maps points from world or local Ashspace frames into a grid attached to a frame.
+It captures transforms for every defined frame at construction. Keep the frame graph stable during capture;
+later edits do not change this navigator. Reconstruct it to refresh the captured positions. The supplied
+`GridSpaceMapper3` describes origin and cell size in the grid frame. Capture costs O(F*h) time and O(F)
+memory for F frames and maximum depth h; later conversions take expected O(1) time plus node lookup.
+Transform composition and inversion remain Ashspace operations, with that dependency's precision limits.
 
 Built-in solvers implement `GraphPathfinder`. The navigator rejects a solver whose `graph()` is not
-its own graph instance, even if both graphs have the same number of nodes. Custom `Pathfinder` lambdas
+its configured traversal graph instance, even if both graphs have the same number of nodes.
+The original two-argument constructor uses one grid graph for both roles. The new three-argument
+constructor takes `(graph, nodes, mapper)`. It checks matching counts; the caller must also guarantee
+matching ID meanings and stable mapping. Policies that preserve IDs can reuse the base grid mapping. Custom `Pathfinder` lambdas
 remain supported: the caller must ensure the same graph connectivity and node-ID mapping because
 the bridge cannot inspect their identity. Custom solvers can implement `GraphPathfinder` to expose it.
 
@@ -149,8 +158,93 @@ A blocked or outside endpoint produces `UNREACHABLE` with `visitedNodeCount=0`, 
 Check `nodeOfWorldPoint` to distinguish that case from disconnected valid endpoints. Invalid IDs throw
 `IllegalArgumentException`; null inputs throw `NullPointerException`. Invalid emitted neighbors or evaluated
 costs/estimates throw `IllegalStateException`. Numeric world mapping errors follow Ashspace's exceptions.
-There is no search limit or interrupted-search status. `visitedNodeCount` counts distinct processed nodes,
+Blocking `findPath` runs to completion. For budgets and cancellation, use the session API below.
+`visitedNodeCount` counts distinct processed nodes,
 including a found goal; an A* node reopened several times counts once.
+
+## Controlled search and composed navigation
+
+BFS, Dijkstra and A* implement `ResumablePathfinder`. `startSearch(start, goal)` creates an independent
+`PathSearchSession`. `advance(maxQueuePops)` processes at most that many queue removals, including
+stale entries. Repeated A* expansions are counted in `expansionCount`; `queuePopCount` also includes
+stale entries. `advance(0)` only returns the state. Negative budgets are rejected. Splitting work into
+different positive budgets preserves the completed result for unchanged graph and callback inputs.
+
+| Session state | Meaning |
+| --- | --- |
+| IN_PROGRESS | Work remains; the most recent budget may have been exhausted |
+| FOUND / UNREACHABLE | A completed result is available through result() |
+| CANCELLED | The caller cancelled between steps; no path result is available |
+| FAILED | A callback/arithmetic error interrupted a step; the exception was rethrown and the session cannot resume |
+
+`cancel()` does not change a terminal result. `result()` throws until a FOUND/UNREACHABLE state exists.
+There is no fabricated partial route. Sessions are thread-confined; do not advance or cancel concurrently
+or from a callback. Callbacks must finish: a whole outgoing row is processed in one step. Session creation
+initializes O(V) arrays and completion reconstructs an O(L) path. Neither operation, nor callback time,
+is bounded by a queue-pop budget. Thus this API controls repeatable units of work, not milliseconds or
+maximum memory. The caller chooses which sessions to advance and when. Drop a cancelled/finished session
+to release its retained working state; its immutable result can be kept separately.
+
+The following example assigns a higher cost to one cell and permits movement toward increasing X.
+The graph view preserves IDs, so the base grid provides the node mapping. Its coordinate frame is
+captured by the navigator. The cheaper route goes around the expensive cell.
+
+```java
+import nsk.nu.ashcore.api.math.Vector3;
+import nsk.nu.ashgrid.implementation.grid.indexing.SquareXZChunkScheme;
+import nsk.nu.ashnav.api.grid.GridNeighborhood3;
+import nsk.nu.ashnav.api.path.PathSearchSession;
+import nsk.nu.ashnav.api.path.PathSearchState;
+import nsk.nu.ashnav.implementation.graph.PolicyWeightedIntGraph;
+import nsk.nu.ashnav.implementation.grid.FrameMappedGridNavigator3;
+import nsk.nu.ashnav.implementation.grid.GridWalkabilityGraph3;
+import nsk.nu.ashnav.implementation.grid.IntArrayGrid3i;
+import nsk.nu.ashnav.implementation.path.DijkstraPathfinder;
+import nsk.nu.ashspace.api.frame.FrameGraph3;
+import nsk.nu.ashspace.api.frame.FrameId;
+import nsk.nu.ashspace.api.grid.GridSpaceMapper3;
+import nsk.nu.ashspace.api.transform.RigidTransform3;
+
+public final class AshnavControlledSearchExample {
+    public static void main(String[] args) {
+        GridWalkabilityGraph3 nodes = new GridWalkabilityGraph3(
+                new IntArrayGrid3i(3, 1, 2), value -> true, GridNeighborhood3.N6
+        );
+        int expensive = nodes.nodeOfCell(1, 0, 0);
+        PolicyWeightedIntGraph graph = new PolicyWeightedIntGraph(nodes,
+                (from, to) -> nodes.cellOfNode(to).x() >= nodes.cellOfNode(from).x(),
+                (from, to, baseCost) -> to == expensive ? 5.0 : baseCost
+        );
+        FrameGraph3 frames = FrameGraph3.worldRoot();
+        FrameId vehicle = new FrameId("vehicle");
+        frames.define(vehicle, frames.root(), RigidTransform3.translation(10.0, 0.0, 20.0));
+        GridSpaceMapper3 mapper = new GridSpaceMapper3(1.0, Vector3.ZERO, new SquareXZChunkScheme(16));
+        FrameMappedGridNavigator3 navigator = new FrameMappedGridNavigator3(graph, nodes, mapper, frames, vehicle);
+        int start = navigator.nodeOfLocalPoint(vehicle, new Vector3(0.5, 0.5, 0.5));
+        int goal = navigator.nodeOfWorldPoint(new Vector3(12.5, 0.5, 20.5));
+        if (start < 0 || goal < 0) throw new IllegalArgumentException("Endpoint has no node");
+
+        DijkstraPathfinder solver = new DijkstraPathfinder(graph);
+        PathSearchSession search = solver.startSearch(start, goal);
+        while (search.state() == PathSearchState.IN_PROGRESS) {
+            search.advance(2); // A real caller can return to its own event loop between steps.
+        }
+        if (search.state() != PathSearchState.FOUND || search.result().path().totalCost() != 4.0) {
+            throw new IllegalStateException("Expected the cheaper detour");
+        }
+        System.out.println("detour cost=" + search.result().path().totalCost());
+
+        PathSearchSession cancelled = solver.startSearch(start, goal);
+        cancelled.cancel();
+        if (cancelled.advance(2) != PathSearchState.CANCELLED) throw new IllegalStateException("Cancellation failed");
+    }
+}
+```
+
+`PolicyWeightedIntGraph` retains its policies and base graph. It evaluates a directed acceptance rule,
+then a cost rule for accepted weighted edges. BFS reads connectivity without invoking the cost rule.
+Policy costs must be finite and non-negative. Callbacks can consult cell coordinates through the mapping
+and enforce clearance rules, but their captured data must remain stable across session pauses.
 
 ## Ordering, ownership and numeric limits
 
@@ -197,13 +291,18 @@ of heuristic calls. Assume O(1) node checks and O(d(v)) neighbor iteration, excl
 | Operation | Time | Additional memory, including result |
 | --- | --- | --- |
 | Adjacency graph construction | O(V+E) | O(V+E) |
-| Weighted row edgeCost / neighbor iteration | O(d(v)) / O(d(v)) plus consumer time | O(1), excluding consumer |
+| Weighted row edgeCost / forEachEdge | O(d(v)) / O(d(v)) plus consumer time | O(1), excluding consumer |
+| Policy view construction | O(1) | O(1) |
+| Policy view iteration | Base iteration plus policy/consumer work | Base temporary memory plus callbacks |
+| Search session creation | O(V), except O(1) trivial BFS; initial heuristic calls for A* | O(V) |
 | Grid snapshot construction | O(N), assuming O(1) predicate and grid reads | O(N) |
 | BFS | O(V+E) | O(V), including an O(L) path |
 | Dijkstra, O(1) edgeCost | O(V+E+P log(1+P)), P <= E+1 | O(V+P) |
-| Dijkstra, weighted adjacency rows | Above plus O(sum(d(v)^2)) | O(V+P) |
+| Dijkstra, native weighted adjacency rows | O(V+E+P log(1+P)) | O(V+P) |
+| Dijkstra, default edge iteration with linear edgeCost | Above plus O(sum(d(v)^2)) | O(V+P) |
 | A*, O(1) edgeCost | O(V+A+P log(1+P)+H), P <= A+1 | O(V+P) |
-| A*, weighted adjacency rows | Above plus O(sum(X(v)*d(v)^2)) | O(V+P) |
+| A*, native weighted adjacency rows | O(V+A+P log(1+P)+H) | O(V+P) |
+| A*, default edge iteration with linear edgeCost | Above plus O(sum(X(v)*d(v)^2)) | O(V+P) |
 | Grid node/cell lookup, edgeCost, neighbor iteration | O(1), at most 26 offsets, plus consumer time | O(1) |
 | World/node bridge lookup | O(1), excluding path search | O(1), with small coordinate allocations |
 | PathResult construction / nodes() | O(L) | O(L) per copy |
@@ -211,10 +310,13 @@ of heuristic calls. Assume O(1) node checks and O(d(v)) neighbor iteration, excl
 With consistent estimates in exact arithmetic, each A* node is expanded at most once. With inconsistent
 estimates, A and P are not bounded by a single pass over E; the number of improvements can be exponential.
 The priority queue stores new states instead of decreasing a single entry per node, so memory is not
-just O(V). For weighted adjacency rows, reading the cost of each of d neighbors scans that row repeatedly:
-a hub with 10,000 distinct outgoing edges can require about 50 million comparisons during one expansion.
-A dense graph can incur cubic total lookup work. Grid graphs have at most 26 neighbors and avoid that growth.
-No lookup optimization or performance benchmark claim is made here.
+just O(V). Solvers now consume `forEachEdge`, which pairs each neighbor with its cost. Weighted adjacency
+and grid graphs override it to read pairs directly. Duplicate neighbors still carry their first pair cost.
+Existing custom graphs inherit a compatible default that calls `edgeCost` once per emission. If that lookup
+scans a row, a hub with 10,000 neighbors can still require about 50 million comparisons per expansion.
+Graph and policy callback invocation counts are not stable API; callbacks must be repeatable and free of
+side effects that influence later values. Initializing canonical duplicate costs takes O(V+E) time with
+O(V) temporary storage. A measured comparison with the previous JAR is in [BENCHMARKS.md](BENCHMARKS.md).
 
 Doubling all three grid dimensions multiplies snapshot storage and construction work by eight. Big-O is
 not a latency or heap budget; projection allocates cell mappings and node coordinate objects.
@@ -235,7 +337,11 @@ better routes for inconsistent heuristics. Rejecting mismatched built-in solvers
 can turn previously misleading results into exceptions. Duplicate-edge first-cost semantics are unchanged.
 Choose Dijkstra or zero estimates when migrating an unproven heuristic; reconstruct solvers with the
 same graph as the navigator. Revalidate any golden route sequences rather than assuming ties survive an upgrade.
-No serialized wire format is defined. Releases follow Semantic Versioning; existing artifacts must not be overwritten.
+The later navigation additions retain 2.0.0-SNAPSHOT while this release is in development. They preserve
+existing signatures and result ties; blocking searches now use the same engine as stepped sessions.
+Custom weighted graphs inherit forEachEdge by default. The original navigator constructor remains;
+use its new graph/mapping overload for views. Frame navigation uses Ashspace 1.0.0 API and also has
+integration coverage with the current sibling snapshots. No serialized wire format is defined. Releases follow Semantic Versioning; existing artifacts must not be overwritten.
 
 ## Glossary
 

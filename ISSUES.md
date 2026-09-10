@@ -47,6 +47,10 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 | [NAV-006](#nav-006) | P1 | INSPEKCJA | Doprecyzować duplikaty krawędzi i dane wpływające na wynik |
 | [NAV-007](#nav-007) | P1 | DECYZJA | Zdefiniować API stabilne dla użytkownika i odświeżyć README |
 | [NAV-008](#nav-008) | P1 | INSPEKCJA | Dostosować CI, pakowanie i dowody wydania |
+| [NAV-009](#nav-009) | P2 | DECYZJA | Dodać wznawiane i anulowane wyszukiwanie |
+| [NAV-010](#nav-010) | P2 | DECYZJA | Rozdzielić politykę ruchu i kosztów od mapowania siatki |
+| [NAV-011](#nav-011) | P2 | INSPEKCJA | Usprawnić iterację ważonych krawędzi i zmierzyć zmianę |
+| [NAV-012](#nav-012) | P2 | DECYZJA | Powiązać nawigację z lokalnymi układami Ashspace |
 
 <a id="nav-001"></a>
 
@@ -267,6 +271,93 @@ Maven używa zależności rozstrzygniętych z POM i repozytoriów artefaktów. Z
 
 **Powiązania:** Wspólny wzorzec: [TEMPLATE-001](../Ashtemplate/ISSUES.md#template-001) i [TEMPLATE-002](../Ashtemplate/ISSUES.md#template-002). Tę korektę można wykonać niezależnie od napraw algorytmów. Istniejącego numeru wydania nie nadpisuj innym artefaktem.
 
+<a id="nav-009"></a>
+
+## NAV-009 — Dodać wznawiane i anulowane wyszukiwanie
+
+**Status:** GOTOWE<br>
+**Priorytet:** P2<br>
+**Dowód:** DECYZJA<br>
+**Kontrakt:** sekcje 3.6, 4.2, 4.4, 4.5
+
+**Powód i zakres:** Po zamknięciu NAV-001–NAV-008 użytkownik zatwierdził uzupełnienia wynikające z oceny kompletności Ashnav. Blokujące findPath nie pozwalało rozłożyć pracy na kolejne wywołania ani zrezygnować z zapytania. Kontrola wyszukiwania należy do nawigacji; nie wymaga schedulera ani zależności od silnika gry.
+
+**Realizacja 2026-09-10:** Dodano ResumablePathfinder, PathSearchSession i osobne stany sesji. BFS, Dijkstra i A* używają tego samego silnika w findPath i startSearch. advance ogranicza liczbę zdjęć z kolejki, także nieaktualnych wpisów. Wyczerpanie budżetu pozostawia IN_PROGRESS. cancel między krokami ustawia CANCELLED; błąd callbacku ustawia FAILED i jest ponownie rzucany. Wynik istnieje tylko dla FOUND/UNREACHABLE. Nie zmieniono PathStatus ani dotychczasowych reguł remisów.
+
+**Warunki zamknięcia:**
+
+- [x] Podział pracy na różne budżety daje ten sam pełny wynik co findPath; sprawdzono również wszystkie pary węzłów w 80 małych grafach z wzorcem Floyd–Warshalla.
+- [x] Testy rozróżniają pauzę, brak drogi, anulowanie i błąd; obejmują stare wpisy kolejki, ponowne otwieranie A*, niezależne sesje, budżet zero/ujemny i wywołania rekurencyjne.
+- [x] README i Javadoc podają ograniczenia: jeden wątek, stabilne dane przez całą sesję, atomowy wiersz sąsiadów, inicjalizacja O(V), odtwarzanie wyniku poza budżetem i zwolnienie pamięci po porzuceniu sesji. Budżet nie oznacza limitu czasu ani pamięci.
+
+**Dowody:** PathSearchSessionTest, PathfinderContractsTest oraz [VERIFICATION.md](VERIFICATION.md#navigation-extensions). Powiązania: NAV-001, NAV-005, NAV-011.
+
+<a id="nav-010"></a>
+
+## NAV-010 — Rozdzielić politykę ruchu i kosztów od mapowania siatki
+
+**Status:** GOTOWE<br>
+**Priorytet:** P2<br>
+**Dowód:** DECYZJA<br>
+**Kontrakt:** sekcje 3.6, 4.1, 4.2, 5.1
+
+**Powód i zakres:** Własny graf mógł modelować reguły klienta, ale navigator wymagał konkretnego GridWalkabilityGraph3. Potrzebna była kompozycja ogólnych reguł przejścia i kosztów z istniejącym mapowaniem komórek, bez wbudowywania fizyki lub reguł gry.
+
+**Realizacja 2026-09-10:** GridNodeMapping3 opisuje mapowanie niezależnie od grafu. PolicyWeightedIntGraph filtruje skierowane krawędzie przez IntEdgePredicate i przelicza ich koszty przez IntEdgeCost, zachowując ID, kolejność i duplikaty. Navigator przyjmuje osobno IntGraph i mapowanie; stary konstruktor pozostaje. Tożsamość solvera sprawdzana jest względem skonfigurowanego grafu przejść. Zgodność liczby węzłów jest walidowana, zgodność znaczenia ID pozostaje obowiązkiem klienta. Polityki są widokiem aktualnych danych i muszą być stabilne podczas zapytania/sesji.
+
+**Warunki zamknięcia:**
+
+- [x] Testy obejmują kosztowną komórkę i objazd, przejście jednokierunkowe oraz przykładową politykę zakazującą przekątnej między blokadami.
+- [x] Działa mapowanie, które samo nie jest grafem; błędne liczby węzłów i obcy graf solvera są odrzucane.
+- [x] BFS nie wywołuje polityki kosztu; odfiltrowana krawędź również jej nie wywołuje. Koszt wynikowy musi być skończony i nieujemny.
+- [x] Pełny przykład README łączy politykę, mapowanie, ramy i sesję; jest kompilowany i wykonywany z zapakowanymi JAR-ami.
+
+**Dowody:** PolicyGraphIntegrationTest, PackagedArtifactIT oraz [VERIFICATION.md](VERIFICATION.md#navigation-extensions). Powiązania: NAV-002, NAV-003, NAV-009, NAV-012.
+
+<a id="nav-011"></a>
+
+## NAV-011 — Usprawnić iterację ważonych krawędzi i zmierzyć zmianę
+
+**Status:** GOTOWE<br>
+**Priorytet:** P2<br>
+**Dowód:** INSPEKCJA<br>
+**Kontrakt:** sekcje 4.1, 4.4, 4.5
+
+**Powód i zakres:** NAV-005 opisał koszt wielokrotnego liniowego wyszukiwania edgeCost, ale nie zmieniał implementacji. Uzupełnienie ma usunąć go z wbudowanej iteracji bez zmiany semantyki duplikatów i istniejących implementacji klienta.
+
+**Realizacja 2026-09-10:** WeightedIntGraph ma domyślne forEachEdge i IntWeightedEdgeConsumer. Graf tablicowy i projekcja siatki przekazują sąsiada z kosztem bez dodatkowego lookupu; Dijkstra/A* korzystają z tego wejścia. Konstruktor grafu tablicowego normalizuje koszty kolejnych duplikatów do pierwszego, po walidacji wszystkich oryginalnych wartości. Liczba i kolejność emisji zostają zachowane. Bezpośrednie edgeCost nadal ma koszt liniowy.
+
+**Warunki zamknięcia:**
+
+- [x] Testy sprawdzają zgodność obu sposobów iteracji, duplikaty w obu kolejnościach kosztów, niepoprawny późniejszy koszt oraz wszystkie N6/N18/N26 na małej siatce.
+- [x] Domyślna metoda obsługuje stary interfejs; wcześniej skompilowana implementacja WeightedIntGraph działa z nowym JAR-em. Publiczne sygnatury nie zostały usunięte.
+- [x] Wykonano ten sam program pomiarowy przeciwko JAR-owi sprzed zmian i nowemu, na grafie o dużym stopniu, łańcuchu i siatce. Warunki, wyniki oraz ograniczenia zapisano w [BENCHMARKS.md](BENCHMARKS.md).
+- [x] Wstępna regresja narzutu sesji została odtworzona i usunięta; końcowy pomiar pokazuje niższy czas oraz mniej alokacji we wszystkich sześciu badanych kombinacjach. Nie jest to gwarancja wydajności dla dowolnego obciążenia.
+
+**Dowody:** WeightedEdgeIterationTest, porównanie binarne, benchmark oraz [VERIFICATION.md](VERIFICATION.md#navigation-extensions). Powiązania: NAV-005, NAV-006, NAV-009.
+
+<a id="nav-012"></a>
+
+## NAV-012 — Powiązać nawigację z lokalnymi układami Ashspace
+
+**Status:** GOTOWE<br>
+**Priorytet:** P2<br>
+**Dowód:** DECYZJA<br>
+**Kontrakt:** sekcje 3.6, 4.2, 4.3, 4.5
+
+**Powód i zakres:** Sam most world→node nie obsługiwał siatki związanej z lokalnym układem ani końców trasy wyrażonych w różnych ramach. Transformacje pozostają własnością Ashspace; Ashnav ma tylko wiązać je z mapowaniem i wyszukiwaniem.
+
+**Realizacja 2026-09-10:** FrameMappedGridNavigator3 przechwytuje przez API Ashspace transformacje wszystkich zdefiniowanych ram do układu siatki i odwrotnie. Obsługuje punkty lokalne/światowe, środki węzłów i końce trasy w różnych ramach, także z grafem polityki. Origin i cellSize mappera są wyrażone w układzie siatki. Koszty nie zmieniają jednostek. Późniejsze zmiany/usunięcia ram nie zmieniają navigatora; odświeżenie wymaga nowej instancji, nowe ID są nieznane.
+
+**Warunki zamknięcia:**
+
+- [x] Integracja obejmuje translację, obrót, niejednostkową komórkę, różne ramy końców, objazd po zmianie kosztów i granice mapy.
+- [x] Testy potwierdzają stabilność przechwyconych transformacji po edycji ram oraz odświeżenie nową instancją; błędy ram i współrzędnych są rozdzielone od punktu bez węzła.
+- [x] README/Javadoc opisują przechwycenie O(F*h), pamięć O(F), stabilność ram podczas konstrukcji i ograniczenia numeryczne wybranego Ashspace. Nie dodano własnej algebry transformacji ani obietnicy dokładnego round-trip.
+- [x] Pełne clean verify przechodzi zarówno z zależnościami wydanymi z POM, jak i ze zidentyfikowanymi lokalnymi snapshotami dolnych warstw, bez ich modyfikacji.
+
+**Dowody:** FrameMappedGridNavigator3IntegrationTest, PackagedArtifactIT oraz [VERIFICATION.md](VERIFICATION.md#navigation-extensions). Powiązania: NAV-003, NAV-010, SPACE-001, SPACE-003.
+
 ## Stan przekazania i dziennik sesji
 
 **Historia na 2026-09-09:** wszystkie zadania pozostawały OTWARTE. Utworzono dokumentację; nie wprowadzono korekt kodu, nie wykonano buildów bibliotek ani publikacji. Nie uznawaj samego dodania ISSUES.md za realizację żadnego zadania.
@@ -279,5 +370,6 @@ Po kolejnej sesji dopisz wiersz i uzupełnij statusy odpowiednich zadań. Zapisz
 | --- | --- | --- | --- | --- |
 | 2026-09-09 / punkt odniesienia powyżej | Wszystkie: OTWARTE | Utworzenie planu korekt | Inspekcja statyczna; testów bibliotek nie uruchomiono | Rozpocząć od wskazanego P1 |
 | 2026-09-10 / snapshot 5dd3d84; commit korekt zawiera ten wpis | NAV-001–NAV-008: GOTOWE | Korekty algorytmu, walidacji, API, dokumentacji i builda wyłącznie w Ashnav | 29 testów bazowych PASS; nowe regresje: 2 FAIL przed poprawką; po poprawkach 45 + 2 PASS w clean verify, także z nowszymi snapshotami; actionlint PASS; zgodność publicznych sygnatur PASS | Brak publikacji, tagu i zdalnego uruchomienia CI; procedura i ograniczenia w VERIFICATION.md |
+| 2026-09-10 / snapshot 7d3f046; commit uzupełnień zawiera ten wpis | NAV-009–NAV-012: GOTOWE | Sesje, polityki grafu, ważona iteracja i lokalne ramy; wyłącznie Ashnav | 61 + 2 PASS z zależnościami z POM i snapshotami; dwa przykłady README PASS; 0 usuniętych publicznych sygnatur; stary skompilowany graf klienta PASS; pomiar w BENCHMARKS.md | Te same granice publikacji; sesje mają budżet zdjęć z kolejki, a ramy są przechwytywane przy konstrukcji |
 
-**Stan bieżący:** NAV-001–NAV-008 zamknięte z dowodami lokalnej weryfikacji. Następny krok wydawniczy: wybrać docelowy zestaw wersji, uruchomić CI na commicie wydania i wykonać osobno autoryzowaną publikację. To nie jest zaległa korekta kodu w tych zadaniach.
+**Stan bieżący:** NAV-001–NAV-012 zamknięte z dowodami lokalnej weryfikacji. Następny krok wydawniczy: wybrać docelowy zestaw wersji, uruchomić CI na commicie wydania i wykonać osobno autoryzowaną publikację. To nie jest zaległa korekta kodu w tych zadaniach.

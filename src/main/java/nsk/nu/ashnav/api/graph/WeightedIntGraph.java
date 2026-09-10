@@ -16,4 +16,17 @@ public interface WeightedIntGraph extends IntGraph {
      * IllegalArgumentException. Query complexity must include this method's lookup cost.</p>
      */
     double edgeCost(int fromNodeId, int toNodeId);
+
+    /**
+     * Emits the same neighbor sequence as forEachNeighbor, paired with edgeCost values.
+     * Duplicate neighbors must carry the same pair cost, including first-entry semantics
+     * in WeightedAdjacencyIntGraph. The consumer is synchronous and must not be retained.
+     * This compatibility default uses one edgeCost lookup per emission. Implementations
+     * may override it to read neighbors and costs together, preserving order and values.
+     * Cost is iteration plus all lookups/callbacks; a null consumer is rejected.
+     */
+    default void forEachEdge(int nodeId, IntWeightedEdgeConsumer edgeConsumer) {
+        if (edgeConsumer == null) throw new NullPointerException("edgeConsumer");
+        forEachNeighbor(nodeId, neighbor -> edgeConsumer.accept(neighbor, edgeCost(nodeId, neighbor)));
+    }
 }

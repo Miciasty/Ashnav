@@ -2,30 +2,49 @@ package nsk.nu.ashnav.implementation.grid;
 
 import nsk.nu.ashcore.api.math.Vector3;
 import nsk.nu.ashgrid.api.grid.indexing.CellIndex3;
+import nsk.nu.ashnav.api.graph.IntGraph;
+import nsk.nu.ashnav.api.grid.GridNodeMapping3;
 import nsk.nu.ashnav.api.path.GraphPathfinder;
 import nsk.nu.ashnav.api.path.PathSearchResult;
 import nsk.nu.ashnav.api.path.Pathfinder;
 import nsk.nu.ashspace.api.grid.GridSpaceMapper3;
 
 /**
- * World-space bridge for pathfinding over a {@link GridWalkabilityGraph3}.
+ * World-space bridge using a graph and a separate cell/node mapping.
+ * The caller must supply the same ID meanings for both; only node counts are checked.
+ * A graph view that filters edges or changes costs without renumbering can reuse its base mapping.
  * Points use the mapper's right-handed, Y-up world frame and world units.
  * Lookup floors (world-origin)/cellSize with no boundary epsilon; negative fractions
  * map to negative cells. Mapper numeric limits and double rounding apply.
  * Mapping does not rescale path costs or refresh the graph snapshot.
  */
 public final class SpaceMappedGridNavigator3 {
-    private final GridWalkabilityGraph3 graph;
+    private final IntGraph graph;
+    private final GridNodeMapping3 nodes;
     private final GridSpaceMapper3 mapper;
 
     public SpaceMappedGridNavigator3(GridWalkabilityGraph3 graph, GridSpaceMapper3 mapper) {
+        this(graph, graph, mapper);
+    }
+
+    /**
+     * Binds traversal graph, matching node mapping and world mapper without copying them.
+     * A different node count is rejected; matching ID semantics and stable data remain
+     * caller preconditions. Construction takes O(1) for O(1) nodeCount implementations.
+     */
+    public SpaceMappedGridNavigator3(IntGraph graph, GridNodeMapping3 nodes, GridSpaceMapper3 mapper) {
         if (graph == null) {
             throw new NullPointerException("graph");
         }
         if (mapper == null) {
             throw new NullPointerException("mapper");
         }
+        if (nodes == null) throw new NullPointerException("nodes");
+        if (graph.nodeCount() < 0 || graph.nodeCount() != nodes.nodeCount()) {
+            throw new IllegalArgumentException("graph and node mapping counts must match");
+        }
         this.graph = graph;
+        this.nodes = nodes;
         this.mapper = mapper;
     }
 
@@ -34,14 +53,14 @@ public final class SpaceMappedGridNavigator3 {
      */
     public int nodeOfWorldPoint(Vector3 worldPoint) {
         CellIndex3 cell = mapper.worldToCell(worldPoint);
-        return graph.nodeOfCell(cell.x(), cell.y(), cell.z());
+        return nodes.nodeOfCell(cell.x(), cell.y(), cell.z());
     }
 
     /**
      * World-space center of graph node cell.
      */
     public Vector3 worldCenterOfNode(int nodeId) {
-        return mapper.cellCenter(graph.cellOfNode(nodeId));
+        return mapper.cellCenter(nodes.cellOfNode(nodeId));
     }
 
     /**

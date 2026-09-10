@@ -14,7 +14,8 @@ public interface Pathfinder {
      * Solves path query from {@code startNodeId} to {@code goalNodeId}.
      * Built-in solvers reject invalid IDs with IllegalArgumentException and emitted invalid
      * neighbors or evaluated invalid costs/estimates with IllegalStateException.
-     * A valid query with no route returns UNREACHABLE; there is no search budget/status.
+     * A valid query with no route returns UNREACHABLE. This blocking operation runs to completion;
+     * ResumablePathfinder.startSearch provides separately budgeted and cancellable sessions.
      * Weighted solvers require finite sums (overflow throws IllegalStateException).
      * Results contain copied node IDs valid for the queried graph state; world changes
      * do not automatically invalidate or repair the returned route.
