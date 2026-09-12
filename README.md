@@ -3,8 +3,7 @@
 Ashnav finds routes through caller-defined graphs and finite voxel grids in Java.
 It separates connectivity, path search and world-coordinate mapping so you can test each part independently.
 
-This README describes release version **2.0.0**. Publication of these coordinates is not claimed.
-Build and release evidence is recorded in [VERIFICATION.md](VERIFICATION.md).
+Version **2.0.0** is available from [Maven Central](https://central.sonatype.com/artifact/dev.nasaka.blackframe/ashnav/2.0.0).
 
 ## When to use it
 
@@ -28,15 +27,7 @@ Ashnav cannot infer a character's physical ability from the graph.
 
 ## Requirements and quick start
 
-Use JDK 21 or newer and Maven 3.9+. This release requires Ashcore
-1.2.0, Ashgrid 1.3.0 and Ashspace 2.0.0; JUnit is test-scoped. These versions
-include corrected numeric boundaries and agree with the current Ashtrace dependency set. Their remote
-publication is not established; provision the artifacts before building. The
-[cross-library verification guide](integration/blackframe/README.md) builds isolated copies of local
-checkouts and tests a consumer of Ashnav and Ashtrace without overriding their transitive dependencies.
-
-Build this checkout with `mvn -B clean verify`. To use the release build in another local project,
-run `mvn -B install` after verification and select its coordinates:
+Use JDK 21 or newer. Add this dependency to your Maven project:
 
 ```xml
 <dependency>
@@ -46,8 +37,13 @@ run `mvn -B install` after verification and select its coordinates:
 </dependency>
 ```
 
+Maven downloads Ashnav and its transitive dependencies from Maven Central: Ashcore 1.2.0,
+Ashgrid 1.3.0 and Ashspace 2.0.0. No additional repository configuration or local dependency
+installation is required.
+
+To build Ashnav from source, use Maven 3.9+ and run `mvn -B clean verify` in this checkout.
+
 Save the following as `AshnavQuickStart.java` in a consumer project using that dependency.
-The build extracts this exact example, compiles it against the packaged JARs and runs it.
 Dijkstra is used because it minimizes supplied traversal costs, including diagonal costs if the
 neighborhood later changes.
 
@@ -313,13 +309,13 @@ of heuristic calls. Assume O(1) node checks and O(d(v)) neighbor iteration, excl
 With consistent estimates in exact arithmetic, each A* node is expanded at most once. With inconsistent
 estimates, A and P are not bounded by a single pass over E; the number of improvements can be exponential.
 The priority queue stores new states instead of decreasing a single entry per node, so memory is not
-just O(V). Solvers now consume `forEachEdge`, which pairs each neighbor with its cost. Weighted adjacency
+just O(V). Weighted solvers consume `forEachEdge`, which pairs each neighbor with its cost. Weighted adjacency
 and grid graphs override it to read pairs directly. Duplicate neighbors still carry their first pair cost.
 Existing custom graphs inherit a compatible default that calls `edgeCost` once per emission. If that lookup
 scans a row, a hub with 10,000 neighbors can still require about 50 million comparisons per expansion.
 Graph and policy callback invocation counts are not stable API; callbacks must be repeatable and free of
 side effects that influence later values. Initializing canonical duplicate costs takes O(V+E) time with
-O(V) temporary storage. A measured comparison with the previous JAR is in [BENCHMARKS.md](BENCHMARKS.md).
+O(V) temporary storage.
 
 Doubling all three grid dimensions multiplies snapshot storage and construction work by eight. Big-O is
 not a latency or heap budget; projection allocates cell mappings and node coordinate objects.
@@ -331,7 +327,7 @@ under `nsk.nu.ashnav.implementation` are supported API, including their existing
 Package-private helpers and private nested queue records are internal. `IntArrayGrid3i` remains supported
 as a compatibility helper with its original constructors and positive-dimension policy. For new storage
 code, Ashgrid's `implementation.raster.arrays.ArrayGrid3i` supplies the same bounded read/write interface;
-Ashnav does not expand into general storage ownership. No type is moved or deprecated in this correction.
+Ashnav does not expand into general storage ownership. Version 2.0.0 moves or deprecates no public types.
 
 The major version is 2.0.0 because corrected A* ties and stricter validation can change
 observable behavior. Existing method/constructor signatures and `Pathfinder`'s functional shape remain.
@@ -340,15 +336,15 @@ better routes for inconsistent heuristics. Rejecting mismatched built-in solvers
 can turn previously misleading results into exceptions. Duplicate-edge first-cost semantics are unchanged.
 Choose Dijkstra or zero estimates when migrating an unproven heuristic; reconstruct solvers with the
 same graph as the navigator. Revalidate any golden route sequences rather than assuming ties survive an upgrade.
-The later navigation additions are included in 2.0.0. They preserve
-existing signatures and result ties; blocking searches now use the same engine as stepped sessions.
-Custom weighted graphs inherit forEachEdge by default. The original navigator constructor remains;
-use its new graph/mapping overload for views. The cross-library correction raises the dependency baseline
+Version 2.0.0 also adds stepped search sessions and policy views while preserving existing signatures;
+blocking and stepped searches use the same engine.
+Custom weighted graphs inherit `forEachEdge` by default. The original navigator constructor remains;
+use its graph/mapping overload for views. Version 2.0.0 raises the dependency baseline
 to the release versions listed above. Ashspace 1.0.0 can round a tiny negative point outside the grid into cell 0;
 its replacement preserves the boundary side. Older lower-layer dependencies can also hide APIs required
 by current Ashtrace when Maven resolves a combined consumer. Do not force those older versions into this
-configuration. Ashnav's public signatures remain unchanged by this dependency correction.
-No serialized wire format is defined. Releases follow Semantic Versioning; existing artifacts must not be overwritten.
+configuration.
+No serialized wire format is defined. Releases follow Semantic Versioning.
 
 ## Glossary
 
