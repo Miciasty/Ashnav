@@ -1,8 +1,85 @@
 # Ashnav verification and release record
 
-The latest record is [Cross-library integration](#cross-library-integration), covering NAV-013 and the
-corrected dependency baseline. Earlier records are retained as historical evidence; their dependency
-versions, test counts and hashes identify those earlier builds, not the current artifacts.
+The latest record is [Release versions and dependency alignment](#release-version-alignment).
+Earlier records retain the versions, test counts and hashes of their historical builds.
+
+<a id="release-version-alignment"></a>
+
+## 2026-09-10 — Release versions and dependency alignment
+
+The user selected release coordinates without the SNAPSHOT suffix. The five library POMs and their
+Blackframe dependencies now agree: Ashcore **1.2.0**, Ashgrid **1.3.0**, Ashspace **2.0.0**,
+Ashtrace **2.0.0** and Ashnav **2.0.0**. Ashnav's former Core 1.1 dependency and Ashgrid's former
+Core 1.0.1 default both become Core 1.2.0. No production Java implementation or API was changed.
+The standalone consumer uses test-project version 0.0.0. Ashtemplate remains a scaffold for new projects.
+
+`verify-blackframe.ps1` now accepts release coordinates and rejects mismatched dependencies in every
+library. It never rewrites copied POMs. `-SkipGitMetadata` omits all Git calls; SHA-256 records of the
+copied source files still identify the inputs. The new consumer test
+`navFirstConsumerResolvesOrientedGeometryThroughSpaceAndTrace` exercises OBB conversion and exact
+ray intervals through the transitive dependencies, with Ashnav declared before Ashtrace.
+
+### Executed verification
+
+Windows, Eclipse Adoptium JDK **21.0.12.1+1**, Maven **3.9.16**, compiler release **21**.
+All five current source trees were copied and built in dependency order with `clean verify` and
+local `install`, offline in `Ashnav/.verification/repository`. The combined consumer then ran
+`clean verify` and `maven-dependency-plugin:3.8.1:tree` against those installed JARs.
+
+| Project | Version | Unit/integration tests | Packaged-artifact tests |
+| --- | --- | --- | --- |
+| Ashcore | 1.2.0 | 165 PASS | 3 PASS |
+| Ashgrid | 1.3.0 | 102 PASS | 4 PASS |
+| Ashspace | 2.0.0 | 87 PASS | 2 PASS |
+| Ashtrace | 2.0.0 | 104 PASS | 2 PASS |
+| Ashnav | 2.0.0 | 62 PASS | 2 PASS |
+| Combined consumer | 0.0.0 | 12 PASS | — |
+
+Total: **545 tests**, zero failures, errors or skips. The last gate finished
+**2026-09-10 16:51:45 +02:00**, exit 0. README examples and main/sources/Javadoc JAR checks are included
+in the library gates. The consumer dependency tree resolves exactly Core 1.2.0, Grid 1.3.0,
+Space 2.0.0, Trace 2.0.0 and Nav 2.0.0. No dependency-version override was passed.
+PowerShell parsing and actionlint 1.7.7 for the changed Java CI workflow passed.
+This release set was not rerun on Java 25; earlier snapshot results below are separate evidence.
+
+Local evidence: `.verification/cross-library-20260910-165049/` contains six build logs,
+test XML, `source-files.jsonl` and `artifact-hashes.jsonl`. The verified main/sources/Javadoc
+JARs were also copied to each library's `target` directory under their release filenames.
+Those root target directories can still contain older snapshot build outputs; the isolated run
+above is the authoritative test record for this release set.
+
+| Main JAR | SHA-256 |
+| --- | --- |
+| ashcore-1.2.0.jar | `f53cbc5f73d873e940cf0260a95d37123268116633896d8381e47b541da28ed9` |
+| ashgrid-1.3.0.jar | `5c206e4536ba3221cdbdd5eb763377af410948741127cff1eef61f56a188059b` |
+| ashspace-2.0.0.jar | `99af6bf47dc726b8c17db2810f4b3f6b45a857a935b972f290bb1fc4fd4f8f91` |
+| ashtrace-2.0.0.jar | `dd445639e68605d655efc56d5495879565a45c69bf22a8d236ac728ecf695c10` |
+| ashnav-2.0.0.jar | `3ba2b456ceaa0760e7161cc5daa17649392c56967ae86e4104e50d0bdaed6ad9` |
+
+Ashtrace's `scripts/development-dependencies.json` retains its filename for compatibility but now
+identifies release JARs and POMs. Historical commit values are labelled `sourceBaselineCommit`;
+they do not claim to include this working-tree version promotion.
+
+Reproduce from Ashnav with the appropriate local tool paths:
+
+```powershell
+./scripts/verify-blackframe.ps1 -Maven /path/to/mvn -JavaHome /path/to/jdk21 -Settings /path/to/settings.xml -Offline -SkipGitMetadata
+```
+
+The successful run used Ashtrace's existing local-cache settings. The first attempt could not launch
+Maven under the tool sandbox; a second attempt with empty settings failed offline because cached
+plugins belonged to repository ID `existing-cache`. Neither ran tests. Selecting the matching cached
+repository settings resolved this. Maven then ran with execution escalation; all writes remained
+inside Blackframe and the user Maven cache was only a read source.
+
+### Publication status
+
+The source and local artifacts use release versions. No Git command, branch, commit, tag, push,
+deployment or publication was performed. Historical snapshot verification is preserved below.
+Ashnav CI now selects sibling release tags v1.2.0 (Core), v1.3.0 (Grid) and v2.0.0 (Space/Trace).
+Those tags must be created and available before hosted integration can run; this session did not
+check their remote existence. Publishing consumers requires their release dependencies to be
+available from the configured Maven repositories. Remote CI and publication remain separate checks.
 
 ## 2026-09-10 — Blackframe revision 2.0 corrections
 

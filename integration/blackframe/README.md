@@ -7,7 +7,7 @@ the dependency correction. Ashtrace is not a production dependency of Ashnav.
 
 ## Run from local sources
 
-Use JDK 21, Maven 3.9.9 and PowerShell 7. Place the Ashcore, Ashgrid, Ashspace and Ashtrace checkouts
+Use JDK 21 or newer, Maven 3.9+ and PowerShell 7. Place the Ashcore, Ashgrid, Ashspace and Ashtrace checkouts
 beside Ashnav, or pass their containing directory with `-LibrariesDirectory`. From Ashnav:
 
 ```powershell
@@ -23,10 +23,11 @@ For an existing offline toolchain/cache, executable and settings paths can be su
 The script copies source trees, tests, POMs, README and notices into a new directory under
 `Ashnav/.verification/cross-library-<timestamp>`. It builds each lower library in dependency order using
 `clean verify` and local `install`, then verifies and installs Ashnav using its unchanged declared POM.
-Lower copied POMs select the freshly built development versions; currently only Ashgrid's Ashcore
-property needs adjustment. A mismatched Ashnav POM fails instead of being silently rewritten.
-The sources must use snapshot coordinates. Sibling working trees and the normal Maven repository are
-not written. All dependency installation uses `Ashnav/.verification/repository`.
+Every declared Blackframe dependency must match the corresponding source project's version.
+A mismatch in any library fails; no POM is rewritten. Release coordinates and snapshot coordinates
+are both supported. The release set is Ashcore 1.2.0, Ashgrid 1.3.0 and Ashspace/Ashtrace/Ashnav 2.0.0.
+Sibling working trees and the normal Maven repository are not written. All dependency installation
+uses `Ashnav/.verification/repository`.
 
 The final step runs this consumer's `clean verify` and dependency tree against those installed JARs.
 It fails on missing tests or a failing assertion. `-SkipConsumer` only provisions/verifies the libraries;
@@ -37,8 +38,9 @@ be run separately with the same Maven repository and settings:
 mvn -B -f integration/blackframe/pom.xml -Dmaven.repo.local=<absolute-Ashnav-path>/.verification/repository clean verify
 ```
 
-No deploy, push or publication is performed. Logs, test XML, source commits/status and main-JAR hashes
-identify each run. `.verification/cross-library-run.txt` contains its directory. An offline run needs
+No deploy, push or publication is performed. Logs, test XML, source-file hashes, source commits/status
+and main-JAR hashes identify each run. Use `-SkipGitMetadata` to run without invoking Git; source-file
+hashes still identify the inputs. `.verification/cross-library-run.txt` contains its directory. An offline run needs
 all plugins and dependencies cached under repository IDs enabled by the supplied settings.
 
 ## Scenarios
@@ -54,6 +56,7 @@ all plugins and dependencies cached under repository IDs enabled by the supplied
 | Dynamic index → next query | Removing an obstacle after the previous search completes shortens the next route; prior immutable results remain unchanged |
 | Fine voxel trace → coarse navigation | Half-size voxel occlusion filters coarse-grid edges through a caller policy; the resulting detour's segments are clear |
 | Packaged boundary | All five libraries load from JARs; the DDA and component services resolve from their packaged resources |
+| Dependency mediation | With Ashnav declared before Ashtrace, transitive Core supplies OBB intervals and Ashspace converts a rotated box for exact tracing |
 
 These tests use box obstacles as the exact geometry of their fixture. General broad-phase bounds remain
 candidates, and a point segment does not establish body clearance. Policy inputs must stay stable during
@@ -61,11 +64,11 @@ the entire search/session. Frame/grid/index snapshots are selected explicitly fo
 
 ## CI and release scope
 
-The Java CI workflow checks out the four tested sibling commits and runs the same script. Those commits
-must be reachable in the configured GitHub repositories; local verification does not establish remote
-availability or a successful GitHub Actions run. Updating a pinned commit requires repeating integration.
-The tested versions are development snapshots. Before release, select and verify published lower-layer
-versions, update the POM and integration configuration, and run the separate release gate.
+The Java CI workflow checks out sibling release tags: Ashcore v1.2.0, Ashgrid v1.3.0 and
+Ashspace/Ashtrace v2.0.0, then runs the same script. Those tags must exist in the configured GitHub
+repositories. Local version promotion does not create tags, publish artifacts or establish a successful
+GitHub Actions run. Updating a release dependency requires repeating integration. Publish lower layers
+before consumers and run the separate release gate against the intended release tag.
 
 Actual versions, source identities, failures and final results are recorded in
 [VERIFICATION.md](../../VERIFICATION.md#cross-library-integration).

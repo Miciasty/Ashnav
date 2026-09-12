@@ -1,5 +1,8 @@
 package nsk.nu.ashnav.integration.blackframe;
 
+import nsk.nu.ashcore.api.collision.CollisionTests;
+import nsk.nu.ashcore.api.geometry.AxisAlignedBox;
+import nsk.nu.ashcore.api.geometry.OrientedBox;
 import nsk.nu.ashcore.api.geometry.Ray;
 import nsk.nu.ashcore.api.math.Quaternion;
 import nsk.nu.ashcore.api.math.Vector3;
@@ -16,8 +19,13 @@ import nsk.nu.ashspace.api.frame.FrameGraph3;
 import nsk.nu.ashspace.api.frame.FrameId;
 import nsk.nu.ashspace.api.grid.FrameGridSpaceMapper3;
 import nsk.nu.ashspace.api.grid.GridSpaceMapper3;
+import nsk.nu.ashspace.api.space.SpaceConverter3;
 import nsk.nu.ashspace.api.transform.RigidTransform3;
+import nsk.nu.ashtrace.api.broadphase.model.AabbEntry3;
+import nsk.nu.ashtrace.api.trace.model.RayIntersection3;
+import nsk.nu.ashtrace.api.trace.pipeline.FrameExactRayTracer3;
 import nsk.nu.ashtrace.api.trace.pipeline.FrameGridRayTracer3;
+import nsk.nu.ashtrace.implementation.broadphase.staticindex.BvhAabbBroadPhase3;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -28,6 +36,28 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class FrameNavigationAgreementTest {
+
+    @Test
+    void navFirstConsumerResolvesOrientedGeometryThroughSpaceAndTrace() {
+        // The POM declares only Ashnav, then Ashtrace: older Core mediation must fail this test.
+        var frames = FrameGraph3.worldRoot();
+        var body = new FrameId("body");
+        frames.define(body, frames.root(), new RigidTransform3(
+                new Quaternion(0.5, 0.5, 0.5, 0.5), new Vector3(4, 0, 0)));
+        var converter = new SpaceConverter3(frames);
+        var local = new AxisAlignedBox(new Vector3(-2, -0.5, -0.5), new Vector3(2, 0.5, 0.5));
+        OrientedBox shape = converter.orientedBox(local, body, frames.root());
+        var bounds = converter.axisAlignedBox(local, body, frames.root());
+        var index = new BvhAabbBroadPhase3<>(List.of(new AabbEntry3<>(bounds, shape)));
+        var ray = new Ray(Vector3.ZERO, new Vector3(1, 0, 0));
+        var hit = new FrameExactRayTracer3<>(frames, index).firstHit(frames.root(), ray, 8,
+                (box, query, min, max, output) -> {
+                    var interval = CollisionTests.rayVsOrientedBoxInterval(query, box);
+                    if (interval.hit()) output.accept(new RayIntersection3(interval.tEnter(), interval.tExit()));
+                });
+        assertEquals(3.5, hit.tEnter());
+        assertEquals(4.5, hit.tExit());
+    }
 
     @Test
     void nestedFrameCentersAgreeWithAshspaceAcrossScalesAndRotations() {

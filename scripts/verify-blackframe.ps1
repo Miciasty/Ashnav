@@ -4,7 +4,8 @@ param(
     [string]$Settings,
     [string]$LibrariesDirectory,
     [switch]$Offline,
-    [switch]$SkipConsumer
+    [switch]$SkipConsumer,
+    [switch]$SkipGitMetadata
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,36 +46,37 @@ foreach ($taskLibrary in 'Ashcore', 'Ashgrid', 'Ashspace', 'Ashtrace', 'Ashnav')
     }
     [xml]$taskPom = Get-Content -LiteralPath (Join-Path $taskCopy 'pom.xml') -Raw
     $taskVersions[$taskPom.project.artifactId] = [string]$taskPom.project.version
-    if (-not $taskPom.project.version.EndsWith('-SNAPSHOT')) {
-        throw "$taskLibrary must use development coordinates for this local source integration"
+    if (-not $SkipGitMetadata) {
+        Add-Content -LiteralPath (Join-Path $taskRun 'source-commits.txt') -Value $taskLibrary
+        & git -c "safe.directory=$($taskSource.Replace('\', '/'))" -C $taskSource rev-parse HEAD >> (Join-Path $taskRun 'source-commits.txt')
+        if ($LASTEXITCODE -ne 0) { throw "Cannot identify $taskLibrary" }
+        Add-Content -LiteralPath (Join-Path $taskRun 'source-status.txt') -Value $taskLibrary
+        & git -c "safe.directory=$($taskSource.Replace('\', '/'))" -C $taskSource status --porcelain >> (Join-Path $taskRun 'source-status.txt')
+        if ($LASTEXITCODE -ne 0) { throw "Cannot inspect $taskLibrary" }
     }
-    Add-Content -LiteralPath (Join-Path $taskRun 'source-commits.txt') -Value $taskLibrary
-    & git -c "safe.directory=$($taskSource.Replace('\', '/'))" -C $taskSource rev-parse HEAD >> (Join-Path $taskRun 'source-commits.txt')
-    if ($LASTEXITCODE -ne 0) { throw "Cannot identify $taskLibrary" }
-    Add-Content -LiteralPath (Join-Path $taskRun 'source-status.txt') -Value $taskLibrary
-    & git -c "safe.directory=$($taskSource.Replace('\', '/'))" -C $taskSource status --porcelain >> (Join-Path $taskRun 'source-status.txt')
-    if ($LASTEXITCODE -ne 0) { throw "Cannot inspect $taskLibrary" }
-    # Change only copied POMs, so the integration uses the freshly built lower layers.
-    $taskChanged = $false
+    # Verify the declared dependency graph, for release and snapshot coordinates alike.
+    # Never rewrite POMs to make an inconsistent source set pass.
     foreach ($taskDependency in $taskPom.project.dependencies.dependency) {
         if ($taskDependency.groupId -eq 'dev.nasaka.blackframe') {
             $taskVersion = $taskVersions[[string]$taskDependency.artifactId]
             if (-not $taskVersion) { throw "Unbuilt dependency: $($taskDependency.artifactId)" }
             if ($taskDependency.version -match '^\$\{(.+)\}$') {
-                if ($taskPom.project.properties.($Matches[1]) -ne $taskVersion) {
-                    $taskPom.project.properties.($Matches[1]) = $taskVersion
-                    $taskChanged = $true
-                }
-            } elseif ($taskDependency.version -ne $taskVersion) {
-                $taskDependency.version = $taskVersion
-                $taskChanged = $true
+                $taskDeclaredVersion = [string]$taskPom.project.properties.($Matches[1])
+            } else {
+                $taskDeclaredVersion = [string]$taskDependency.version
+            }
+            if ($taskDeclaredVersion -ne $taskVersion) {
+                throw "$taskLibrary declares $($taskDependency.artifactId) $taskDeclaredVersion, but source integration builds $taskVersion; align the declared dependencies"
             }
         }
     }
-    if ($taskLibrary -eq 'Ashnav' -and $taskChanged) {
-        throw 'Ashnav declared dependencies differ from this source integration; review them instead of silently overriding them'
-    }
-    if ($taskChanged) { $taskPom.Save((Join-Path $taskCopy 'pom.xml')) }
+    Get-ChildItem -LiteralPath $taskCopy -Recurse -File | Sort-Object FullName | ForEach-Object {
+        [pscustomobject]@{
+            Library = $taskLibrary
+            File = [IO.Path]::GetRelativePath($taskCopy, $_.FullName)
+            Sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+        } | ConvertTo-Json -Compress
+    } | Add-Content -LiteralPath (Join-Path $taskRun 'source-files.jsonl')
     Invoke-Verification $taskCopy $taskLibrary @('clean', 'verify', 'org.apache.maven.plugins:maven-install-plugin:3.1.3:install')
     Get-FileHash -LiteralPath (Join-Path $taskCopy "target/$($taskPom.project.artifactId)-$($taskPom.project.version).jar") -Algorithm SHA256 |
         Select-Object Path, Hash | ConvertTo-Json -Compress >> (Join-Path $taskRun 'artifact-hashes.jsonl')

@@ -17,28 +17,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Miciasty/Ashcore
-          ref: e5194402d0c67d2f29909cfa8c6c51ae137644e7
+          ref: v1.2.0
           path: .verification/sources/Ashcore
 
       - name: Checkout tested Ashgrid sources
         uses: actions/checkout@v4
         with:
           repository: Miciasty/Ashgrid
-          ref: 8199f9be15ff2238514fc392b6580649da42255f
+          ref: v1.3.0
           path: .verification/sources/Ashgrid
 
       - name: Checkout tested Ashspace sources
         uses: actions/checkout@v4
         with:
           repository: Miciasty/Ashspace
-          ref: f65217331028873a6b5668440496225e4edbfe0d
+          ref: v2.0.0
           path: .verification/sources/Ashspace
 
       - name: Checkout tested Ashtrace sources
         uses: actions/checkout@v4
         with:
           repository: Miciasty/Ashtrace
-          ref: e07168f5d7a7613fa9cbb3c456aaf0ba7e592756
+          ref: v2.0.0
           path: .verification/sources/Ashtrace
 
       - name: Set up JDK 21

@@ -3,7 +3,7 @@
 Ashnav finds routes through caller-defined graphs and finite voxel grids in Java.
 It separates connectivity, path search and world-coordinate mapping so you can test each part independently.
 
-This README describes **2.0.0-SNAPSHOT**, a development build. Publication of these coordinates is not claimed.
+This README describes release version **2.0.0**. Publication of these coordinates is not claimed.
 Build and release evidence is recorded in [VERIFICATION.md](VERIFICATION.md).
 
 ## When to use it
@@ -28,21 +28,21 @@ Ashnav cannot infer a character's physical ability from the graph.
 
 ## Requirements and quick start
 
-Use JDK 21 or newer and Maven 3.9.9 (the verified version). This development version requires Ashcore
-1.1.0-SNAPSHOT, Ashgrid 1.3.0-SNAPSHOT and Ashspace 2.0.0-SNAPSHOT; JUnit is test-scoped. These versions
+Use JDK 21 or newer and Maven 3.9+. This release requires Ashcore
+1.2.0, Ashgrid 1.3.0 and Ashspace 2.0.0; JUnit is test-scoped. These versions
 include corrected numeric boundaries and agree with the current Ashtrace dependency set. Their remote
-publication is not established; provision the development artifacts before building. The
+publication is not established; provision the artifacts before building. The
 [cross-library verification guide](integration/blackframe/README.md) builds isolated copies of local
 checkouts and tests a consumer of Ashnav and Ashtrace without overriding their transitive dependencies.
 
-Build this checkout with `mvn -B clean verify`. To use the development build in another local project,
+Build this checkout with `mvn -B clean verify`. To use the release build in another local project,
 run `mvn -B install` after verification and select its coordinates:
 
 ```xml
 <dependency>
   <groupId>dev.nasaka.blackframe</groupId>
   <artifactId>ashnav</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
@@ -333,21 +333,21 @@ as a compatibility helper with its original constructors and positive-dimension 
 code, Ashgrid's `implementation.raster.arrays.ArrayGrid3i` supplies the same bounded read/write interface;
 Ashnav does not expand into general storage ownership. No type is moved or deprecated in this correction.
 
-The development version is 2.0.0-SNAPSHOT because corrected A* ties and stricter validation can change
+The major version is 2.0.0 because corrected A* ties and stricter validation can change
 observable behavior. Existing method/constructor signatures and `Pathfinder`'s functional shape remain.
 A* now reopens cheaper routes, retains the first equal-cost parent, requires h(goal)=0 and may return
 better routes for inconsistent heuristics. Rejecting mismatched built-in solvers and invalid grid dimensions
 can turn previously misleading results into exceptions. Duplicate-edge first-cost semantics are unchanged.
 Choose Dijkstra or zero estimates when migrating an unproven heuristic; reconstruct solvers with the
 same graph as the navigator. Revalidate any golden route sequences rather than assuming ties survive an upgrade.
-The later navigation additions retain 2.0.0-SNAPSHOT while this release is in development. They preserve
+The later navigation additions are included in 2.0.0. They preserve
 existing signatures and result ties; blocking searches now use the same engine as stepped sessions.
 Custom weighted graphs inherit forEachEdge by default. The original navigator constructor remains;
 use its new graph/mapping overload for views. The cross-library correction raises the dependency baseline
-to the snapshots listed above. Ashspace 1.0.0 can round a tiny negative point outside the grid into cell 0;
+to the release versions listed above. Ashspace 1.0.0 can round a tiny negative point outside the grid into cell 0;
 its replacement preserves the boundary side. Older lower-layer dependencies can also hide APIs required
 by current Ashtrace when Maven resolves a combined consumer. Do not force those older versions into this
-development configuration. Ashnav's public signatures remain unchanged by this dependency correction.
+configuration. Ashnav's public signatures remain unchanged by this dependency correction.
 No serialized wire format is defined. Releases follow Semantic Versioning; existing artifacts must not be overwritten.
 
 ## Glossary
