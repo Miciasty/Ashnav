@@ -1,5 +1,7 @@
 target/
 .verification/
+/integration/
+/scripts/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

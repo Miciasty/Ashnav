@@ -1,5 +1,10 @@
 # Ashnav verification and release record
 
+`integration/` and `scripts/` are local tools excluded from Git. The procedures below that use them
+require an existing local copy. CI verifies and installs Ashcore, Ashgrid and Ashspace from their
+release tags, then runs Ashnav's `clean verify`, including packaged-artifact tests. The separate
+combined consumer is no longer run in CI. Earlier CI descriptions below are historical records.
+
 The latest record is [Release versions and dependency alignment](#release-version-alignment).
 Earlier records retain the versions, test counts and hashes of their historical builds.
 
@@ -376,9 +381,9 @@ transitively. It declares no dependency management or direct dependencies to for
 
 ### Repeatable procedure and coverage
 
-[scripts/verify-blackframe.ps1](scripts/verify-blackframe.ps1) creates a fresh directory inside Ashnav,
+`scripts/verify-blackframe.ps1` creates a fresh directory inside Ashnav,
 copies the five projects, builds them in order with `clean verify` and local install, then runs the
-[combined consumer](integration/blackframe/README.md). It rejects an Ashnav POM that would require
+combined consumer in `integration/blackframe/`. It rejects an Ashnav POM that would require
 rewriting its dependency versions. The final complete procedure was invoked from Ashnav as follows:
 
 ```powershell

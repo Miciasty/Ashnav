@@ -34,32 +34,22 @@ jobs:
           ref: v2.0.0
           path: .verification/sources/Ashspace
 
-      - name: Checkout tested Ashtrace sources
-        uses: actions/checkout@v4
-        with:
-          repository: Miciasty/Ashtrace
-          ref: v2.0.0
-          path: .verification/sources/Ashtrace
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Verify libraries, packaged artifacts and combined consumer
-        shell: pwsh
+      - name: Verify and install dependency libraries
         run: |
-          ./scripts/verify-blackframe.ps1 -LibrariesDirectory .verification/sources
-          $run = (Get-Content .verification/cross-library-run.txt -Raw).Trim()
-          [xml]$pom = Get-Content pom.xml -Raw
-          $name = "ashnav-$($pom.project.version)"
-          New-Item -ItemType Directory -Path target -Force | Out-Null
-          foreach ($suffix in '.jar', '-sources.jar', '-javadoc.jar') {
-            Copy-Item -LiteralPath "$run/Ashnav/target/$name$suffix" -Destination target
-          }
+          for library in Ashcore Ashgrid Ashspace; do
+            mvn -B -ntp clean install --file ".verification/sources/$library/pom.xml"
+          done
 
-      - name: Upload verification logs
+      - name: Verify Ashnav and packaged artifacts
+        run: mvn -B -ntp clean verify --file pom.xml
+
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -67,10 +57,10 @@ jobs:
           if-no-files-found: warn
           include-hidden-files: true
           path: |
-            .verification/cross-library-*/**/*.log
-            .verification/cross-library-*/**/TEST-*.xml
-            .verification/cross-library-*/source-*.txt
-            .verification/cross-library-*/artifact-hashes.jsonl
+            .verification/sources/*/target/surefire-reports/**
+            .verification/sources/*/target/failsafe-reports/**
+            target/surefire-reports/**
+            target/failsafe-reports/**
 
       - name: Identify verified artifacts
         id: artifact
