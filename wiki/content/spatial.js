@@ -99,7 +99,7 @@ public final class AshnavFrameExample {
 
   window.WIKI_PAGES.push(
     {
-      id:'grid-graphs',category:'Build a navigation model',title:'Grid graphs',kind:'concept',
+      id:'grid-graphs',category:'Navigation model',title:'Grid graphs',kind:'concept',
       description:'Turn accepted cells into a finite graph, choose a neighborhood, and understand what the snapshot guarantees.',
       intro:'<p>A grid stores values at integer coordinates. <code>GridWalkabilityGraph3</code> evaluates your predicate once per cell and assigns a node to each accepted cell. A neighborhood selects which nearby accepted cells connect.</p>',
       sections:[
@@ -114,7 +114,7 @@ public final class AshnavFrameExample {
       ]
     },
     {
-      id:'coordinates',category:'Build a navigation model',title:'World coordinates',kind:'concept',
+      id:'coordinates',category:'Navigation model',title:'World coordinates',kind:'concept',
       description:'Map world points to node IDs and convert a found route back to cell centers.',
       intro:'<p>A graph uses integer IDs. Your plugin usually has positions in a world. <code>SpaceMappedGridNavigator3</code> joins a cell-to-node mapping to Ashspace’s <code>GridSpaceMapper3</code>. Ashcore supplies the <code>Vector3</code> values used for positions.</p>',
       sections:[
@@ -126,7 +126,7 @@ public final class AshnavFrameExample {
       ]
     },
     {
-      id:'frames',category:'Build a navigation model',title:'Local frames',kind:'concept',
+      id:'frames',category:'Navigation model',title:'Local frames',kind:'concept',
       description:'Attach a grid to an Ashspace frame and query points from captured world or local coordinate systems.',
       intro:'<p>A local frame describes positions relative to an object, such as a vehicle. <code>FrameMappedGridNavigator3</code> captures the transforms between Ashspace frames and a grid frame. Start and goal points can then use different captured frames.</p>',
       sections:[

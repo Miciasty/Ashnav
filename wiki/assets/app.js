@@ -219,7 +219,7 @@
       });
       all('.header-nav a').forEach(link => {
         const isExample = ['examples', 'quick-start'].includes(id);
-        const isReference = ['api-reference', 'limits', 'results', 'glossary', 'releases', 'troubleshooting'].includes(id);
+        const isReference = pageMap.get(id).category === 'Reference';
         const active = link.dataset.top === (isExample ? 'examples' : isReference ? 'reference' : 'docs');
         if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
       });

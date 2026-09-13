@@ -6,10 +6,10 @@ window.WIKI_CONFIG = {
   defaultPage: 'overview',
   demo: false,
   navigation: [
-    { title: 'Getting started', items: ['overview', 'installation', 'quick-start', 'minecraft-integration'] },
-    { title: 'Build a navigation model', items: ['graph-model', 'grid-graphs', 'policies', 'coordinates', 'frames'] },
-    { title: 'Find a route', items: ['solvers', 'sessions', 'results', 'examples'] },
-    { title: 'Reference', items: ['api-reference', 'limits', 'troubleshooting', 'glossary', 'releases'] }
+    { title: 'Getting started', items: ['overview', 'installation', 'quick-start'] },
+    { title: 'Navigation model', items: ['graph-model', 'grid-graphs', 'policies', 'coordinates', 'frames'] },
+    { title: 'Pathfinding', items: ['solvers', 'sessions', 'results', 'examples', 'minecraft-integration'] },
+    { title: 'Reference', items: ['api-reference', 'limits', 'glossary', 'releases', 'troubleshooting'] }
   ],
   links: {
     github: 'https://github.com/Miciasty/Ashnav',

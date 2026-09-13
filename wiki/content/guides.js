@@ -175,7 +175,7 @@ public final class AshnavControlledSearchExample {
 
   window.WIKI_PAGES.push(
     {
-      id: 'overview', category: 'Getting started', title: 'Ashnav', kind: 'concept', readingTime: 4,
+      id: 'overview', category: 'Getting started', title: 'Ashnav documentation', navTitle: 'Overview', kind: 'concept', readingTime: 4,
       description: 'Find routes through Java graphs and finite voxel grids, then map the result to your world.',
       intro: `<p>Ashnav is a Java library for pathfinding. You supply places to visit, permitted moves, and their costs. Ashnav searches that model and returns a route as integer node IDs.</p><p>This WIKI documents <strong>Ashnav 2.0.0</strong>. It is for developers building navigation into Minecraft plugins or other Java applications.</p>`,
       sections: [
@@ -197,7 +197,7 @@ public final class AshnavControlledSearchExample {
       ]
     },
     {
-      id: 'installation', category: 'Getting started', title: 'Install the dependency', kind: 'guide', readingTime: 5,
+      id: 'installation', category: 'Getting started', title: 'Install the dependency', navTitle: 'Installation', kind: 'guide', readingTime: 5,
       description: 'Add Ashnav 2.0.0 to a Java project and check the resolved dependency versions.',
       intro: `<p>Use JDK 21 or newer. Ashnav is available from Maven Central as <code>dev.nasaka.blackframe:ashnav:2.0.0</code>. You do not need a custom Maven repository or a local build of Ashcore.</p>`,
       sections: [
@@ -260,7 +260,7 @@ dependencies {
       ]
     },
     {
-      id: 'quick-start', category: 'Getting started', title: 'Find your first route', kind: 'guide', readingTime: 6,
+      id: 'quick-start', category: 'Getting started', title: 'Find your first route', navTitle: 'Quick start', kind: 'guide', readingTime: 6,
       description: 'Create a three-cell corridor and find a path between two world positions.',
       intro: `<p>This example runs in a plain Java project with the <a href="#/installation">Ashnav dependency</a>. It needs no Minecraft server. The grid is 3 × 1 × 1 cells, and every cell is accepted by the predicate.</p>`,
       sections: [
@@ -283,7 +283,7 @@ dependencies {
       ]
     },
     {
-      id: 'examples', category: 'Guides', title: 'Examples', kind: 'guide', readingTime: 9,
+      id: 'examples', category: 'Pathfinding', title: 'Examples', kind: 'guide', readingTime: 9,
       description: 'Run complete Java examples for weighted routes, movement policies, coordinate frames, and stepped search.',
       intro: `<p>Each class below compiles in the consumer project from <a href="#/installation">Installation</a>. Save it under <code>src/main/java</code>. Use the <a href="#/quick-start">quick start commands</a> and replace the main class name with the example’s name.</p>`,
       sections: [
@@ -293,7 +293,7 @@ dependencies {
       ]
     },
     {
-      id: 'minecraft-integration', category: 'Guides', title: 'Minecraft integration', kind: 'guide', readingTime: 7,
+      id: 'minecraft-integration', category: 'Pathfinding', title: 'Minecraft integration', kind: 'guide', readingTime: 7,
       description: 'Embed Ashnav in your plugin and define the world, movement, and scheduling behavior around its search API.',
       intro: `<p>Ashnav 2.0.0 provides a Java search library. It contains no Bukkit or Paper adapter and declares no Minecraft server compatibility range. The examples here explain integration responsibilities; they do not represent a tested live-server plugin.</p>`,
       sections: [

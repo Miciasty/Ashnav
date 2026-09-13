@@ -9,7 +9,7 @@
 
   window.WIKI_PAGES.push(
     {
-      id: 'graph-model', category: 'Core concepts', title: 'Graphs and node IDs', kind: 'concept',
+      id: 'graph-model', category: 'Navigation model', title: 'Graphs and node IDs', kind: 'concept',
       description: 'Define directed connectivity, choose costs, and preserve the meaning of each integer node ID.',
       intro: '<p>A graph describes places and permitted moves. A node is a place with an integer ID. An outgoing edge permits movement from one node to another. Ashnav searches this model; your application decides what each place and move represents.</p>',
       sections: [
@@ -45,7 +45,7 @@
       ]
     },
     {
-      id: 'solvers', category: 'Core concepts', title: 'Choose a pathfinder', kind: 'concept',
+      id: 'solvers', category: 'Pathfinding', title: 'Choose a pathfinder', navTitle: 'Pathfinders', kind: 'concept',
       description: 'Compare BFS, Dijkstra, and A* by the cost they minimize and the assumptions they require.',
       intro: '<p>Choose the solver from the meaning of an edge. Use BFS for the fewest moves, Dijkstra for the lowest supplied cost, and A* when you have a proven lower bound on remaining cost.</p>',
       sections: [
@@ -85,7 +85,7 @@
       ]
     },
     {
-      id: 'sessions', category: 'Core concepts', title: 'Search sessions', kind: 'guide',
+      id: 'sessions', category: 'Pathfinding', title: 'Search sessions', kind: 'guide',
       description: 'Split a search into queue-pop budgets, observe its state, and cancel between steps.',
       intro: '<p>All three built-in pathfinders implement <code>ResumablePathfinder</code>. A session keeps one query’s state between calls. Your application decides when to advance it and when to cancel it.</p>',
       sections: [
@@ -126,7 +126,7 @@
       ]
     },
     {
-      id: 'policies', category: 'Core concepts', title: 'Movement policies', kind: 'guide',
+      id: 'policies', category: 'Navigation model', title: 'Movement policies', kind: 'guide',
       description: 'Filter directed edges and replace traversal costs while retaining the base graph’s node IDs.',
       intro: '<p><code>PolicyWeightedIntGraph</code> wraps a weighted graph with an acceptance rule and a cost rule. Use it to express restrictions and penalties that your application can calculate for each directed move.</p>',
       sections: [
@@ -160,7 +160,7 @@
       ]
     },
     {
-      id: 'results', category: 'Reference', title: 'Results and errors', kind: 'reference',
+      id: 'results', category: 'Pathfinding', title: 'Results and errors', kind: 'reference',
       description: 'Read a completed route, interpret visited nodes, and distinguish no route from invalid input.',
       intro: '<p>A completed search returns <code>PathSearchResult</code>. Its status says whether a route exists in the queried model. The route contains node IDs and a cost; it does not retain or monitor the graph.</p>',
       sections: [
@@ -208,7 +208,7 @@
       ]
     },
     {
-      id: 'api-reference', category: 'Reference', title: 'API reference', kind: 'reference',
+      id: 'api-reference', category: 'Reference', title: 'API reference', navTitle: 'API index', kind: 'reference',
       description: 'Supported public interfaces, value types, constructors, and methods in Ashnav 2.0.0.',
       intro: '<p>All public types and members under <code>nsk.nu.ashnav.api</code> and the public graph, grid, and pathfinder classes under <code>nsk.nu.ashnav.implementation</code> are supported API. Package-private helpers and private queue records are internal.</p><p>Signatures below omit public modifiers for compactness. Standard enum methods and record-generated members follow Java’s conventions. Refer to the linked concept pages for behavior and examples.</p>',
       sections: [
@@ -430,7 +430,7 @@
       ]
     },
     {
-      id: 'releases', category: 'Reference', title: 'Release and migration notes', kind: 'reference',
+      id: 'releases', category: 'Reference', title: 'Release and migration notes', navTitle: 'Migration', kind: 'reference',
       description: 'What Ashnav 2.0.0 changes, which public APIs remain, and what to check when upgrading.',
       intro: '<p>This wiki documents Ashnav <strong>2.0.0</strong>, using JDK 21 or newer. Releases follow Semantic Versioning. The changes below describe the current source and published project documentation; they are not a roadmap.</p>',
       sections: [
