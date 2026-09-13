@@ -15,33 +15,11 @@
     </svg></div><figcaption>The solver works on node IDs. Coordinate mapping translates positions; it does not change connectivity or rescale costs.</figcaption>
   </figure>`;
 
-  const corridorFigure = `<figure class="my-6 rounded-[7px] border border-line bg-surface p-[18px]">
-    <div class="overflow-x-auto"><svg viewBox="0 0 660 240" class="block w-full min-w-[560px]" role="img" aria-labelledby="corridor-title corridor-description">
-      <title id="corridor-title">Quick start corridor, viewed along the X axis</title>
-      <desc id="corridor-description">Three cells span world X from minus four inclusive to two exclusive. Cell centers are minus three, minus one, and one. The start is node zero and the goal is node two. Each edge costs one cell unit.</desc>
-      <defs><marker id="corridor-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs>
-      <g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="60" y="49" width="180" height="98"/><rect x="240" y="49" width="180" height="98"/><rect x="420" y="49" width="180" height="98"/><path d="M 171 101 H 304 M 351 101 H 484" marker-end="url(#corridor-arrow)"/><path d="M 60 190 H 620" marker-end="url(#corridor-arrow)"/><path d="M 60 183 V 197 M 240 183 V 197 M 420 183 V 197 M 600 183 V 197"/></g>
-      <g fill="currentColor" text-anchor="middle" font-family="sans-serif"><text x="330" y="25" font-size="14">Y = 9, Z = 17 world units · each cell is 2 units wide</text><text x="150" y="74" font-size="14">Cell (0, 0, 0)</text><text x="330" y="74" font-size="14">Cell (1, 0, 0)</text><text x="510" y="74" font-size="14">Cell (2, 0, 0)</text><text x="150" y="106" font-size="18" font-weight="600">0</text><text x="330" y="106" font-size="18" font-weight="600">1</text><text x="510" y="106" font-size="18" font-weight="600">2</text><text x="150" y="132" font-size="13">Start · X = −3</text><text x="330" y="132" font-size="13">Center · X = −1</text><text x="510" y="132" font-size="13">Goal · X = 1</text><text x="240" y="170" font-size="13">cost 1</text><text x="420" y="170" font-size="13">cost 1</text><text x="60" y="218" font-size="13">−4</text><text x="240" y="218" font-size="13">−2</text><text x="420" y="218" font-size="13">0</text><text x="600" y="218" font-size="13">2</text><text x="641" y="195" font-size="13">X</text></g>
-    </svg></div><figcaption>A 2D slice of the 3 × 1 × 1 grid. The path contains nodes [0, 1, 2] and costs 2 cell units. The centers are 4 world units apart.</figcaption>
-  </figure>`;
+  const corridorFigure = `<div data-diagram="corridor"></div>`;
 
-  const weightedFigure = `<figure class="my-6 rounded-[7px] border border-line bg-surface p-[18px]">
-    <svg viewBox="0 0 620 218" class="block w-full" role="img" aria-labelledby="weighted-title weighted-description">
-      <title id="weighted-title">Fewest edges and lowest cost choose different routes</title><desc id="weighted-description">The directed edge from S to G costs ten. S to A costs one and A to G costs one. BFS chooses the one-edge route. Dijkstra chooses the two-edge route costing two.</desc>
-      <defs><marker id="weighted-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs>
-      <g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="76" cy="72" r="28"/><circle cx="544" cy="72" r="28"/><circle cx="310" cy="174" r="28"/><path d="M 106 72 H 509 M 105 88 L 278 162 M 340 162 L 513 88" marker-end="url(#weighted-arrow)"/></g>
-      <g fill="currentColor" font-family="sans-serif" text-anchor="middle"><text x="76" y="78" font-size="17">S · 0</text><text x="544" y="78" font-size="17">G · 2</text><text x="310" y="180" font-size="17">A · 1</text><text x="310" y="55" font-size="15">cost 10 · BFS chooses one edge</text><text x="172" y="155" font-size="15">cost 1</text><text x="448" y="155" font-size="15">cost 1</text><text x="310" y="116" font-size="14">Dijkstra chooses cost 1 + 1 = 2</text></g>
-    </svg><figcaption>Edge labels are supplied weights. BFS reports an edge count, so its totalCost is 1 even though that edge has weight 10.</figcaption>
-  </figure>`;
+  const weightedFigure = `<div data-diagram="solver-comparison"></div>`;
 
-  const detourFigure = `<figure class="my-6 rounded-[7px] border border-line bg-surface p-[18px]">
-    <div class="overflow-x-auto"><svg viewBox="0 0 650 254" class="block w-full min-w-[550px]" role="img" aria-labelledby="detour-title detour-description">
-      <title id="detour-title">A cost policy selects a four-step detour</title><desc id="detour-description">In a three by two XZ grid, entering cell one zero zero costs five. The direct route costs six. The route through cells zero zero one, one zero one, and two zero one costs four. X must never decrease.</desc>
-      <defs><marker id="detour-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs>
-      <g fill="none" stroke="currentColor" stroke-width="1.3"><path d="M 74 32 H 572 V 192 H 74 Z M 240 32 V 192 M 406 32 V 192 M 74 112 H 572"/><path d="M 157 85 V 156 H 489 V 85" stroke-width="3" marker-end="url(#detour-arrow)"/><path d="M 172 73 H 471" stroke-dasharray="5 4" marker-end="url(#detour-arrow)"/></g>
-      <g fill="currentColor" font-family="sans-serif" text-anchor="middle"><text x="157" y="56" font-size="14">Start · node 0</text><text x="323" y="56" font-size="14">Node 1 · entry cost 5</text><text x="489" y="56" font-size="14">Goal · node 2</text><text x="157" y="139" font-size="14">Node 3</text><text x="323" y="139" font-size="14">Node 4</text><text x="489" y="139" font-size="14">Node 5</text><text x="42" y="79" font-size="13">Z = 0</text><text x="42" y="161" font-size="13">Z = 1</text><text x="157" y="216" font-size="13">X = 0</text><text x="323" y="216" font-size="13">X = 1</text><text x="489" y="216" font-size="13">X = 2</text><text x="323" y="246" font-size="13">Solid: cost 4 · Dashed: cost 6 · X never decreases</text></g>
-    </svg></div><figcaption>Top-down XZ view at cell Y = 0. Coordinates label the grid, whose frame is translated by (10, 0, 20) world units. Each allowed edge costs 1, except entering node 1 costs 5.</figcaption>
-  </figure>`;
+  const detourFigure = `<div data-diagram="policy-detour"></div>`;
 
   const quickStartSource = `import nsk.nu.ashcore.api.math.Vector3;
 import nsk.nu.ashgrid.implementation.grid.indexing.SquareXZChunkScheme;
@@ -184,7 +162,7 @@ public final class AshnavControlledSearchExample {
           ['quick-start', 'Find your first route', 'Build a three-cell corridor and search between world positions.'],
           ['graph-model', 'Use an existing graph', 'Describe directed connections with integer node IDs.'],
           ['grid-graphs', 'Project a finite grid', 'Choose accepted cells and a neighbor pattern.'],
-          ['minecraft-integration', 'Integrate with a plugin', 'Supply movement rules, scheduling, and world updates.']
+          ['policies', 'Shape permitted movement', 'Control edge direction and traversal costs.']
         ]) },
         { id: 'library-responsibilities', title: 'What each library supplies', html: `${table(['Library', 'Role in navigation', 'Version used by Ashnav 2.0.0'], [
           ['Ashnav', 'Graph abstractions, pathfinders, sessions, policy views, and navigation bridges.', '2.0.0'],
@@ -192,7 +170,6 @@ public final class AshnavControlledSearchExample {
           ['Ashgrid', 'Voxel grid and cell-index interfaces, neighborhood offsets, and chunk indexing.', '1.3.0'],
           ['Ashspace', 'World/grid mapping, coordinate frames, and rigid transforms.', '2.0.0']
         ])}<p>Maven resolves the three lower-level libraries as transitive dependencies. Ashnav owns the search model; your application owns the terrain data and the behavior that follows a route.</p>` },
-        { id: 'minecraft-scope', title: 'Minecraft integration scope', html: `${note('A Java library', '<p>Ashnav has no server plugin entry point, <code>plugin.yml</code>, player commands, permission nodes, or configuration file. Add it to the plugin you develop. Dropping the Ashnav JAR into a server does not install a navigation feature.</p>')}<p>Ashnav does not scan chunks, move NPCs, schedule work, or simulate collisions. A cell accepted by your predicate only becomes a node. Your plugin must define support, headroom, body clearance, doors, stairs, ladders, jumps, drops, and crowd behavior.</p><p>See <a href="#/minecraft-integration">Minecraft integration</a> for that boundary and <a href="#/policies">Movement policies</a> for restricting directed edges.</p>` },
         { id: 'release-basis', title: 'Version and source', html: `<p>The contracts and examples follow the <a href="https://github.com/Miciasty/Ashnav/tree/v2.0.0">2.0.0 source</a>, its tests, and its dependency declarations. <a href="https://central.sonatype.com/artifact/dev.nasaka.blackframe/ashnav/2.0.0">Maven Central</a> provides the artifact. Ashnav uses the Apache License 2.0.</p><p>Read <a href="#/releases">Release notes</a> before upgrading older code. Version 2.0.0 changes observable A* behavior and validation while retaining existing public signatures.</p>` }
       ]
     },
@@ -256,7 +233,7 @@ dependencies {
           ['<code>dev.nasaka.blackframe:ashspace</code>', '<code>2.0.0</code>']
         ])}${code('mvn dependency:tree', 'powershell', 'Terminal · Maven project')}<p>Ashspace 2.0.0 is part of the documented coordinate behavior. Forcing older lower-level versions can change boundary results or remove APIs required by other libraries. Resolve conflicts before comparing a route against these examples.</p>` },
         { id: 'source-build', title: 'Build Ashnav from source', html: `<p>Use JDK 21 or newer and Maven 3.9 or newer. Run this command in the Ashnav checkout.</p>${code('mvn -B clean verify', 'powershell', 'Terminal · Ashnav checkout')}<p>The build compiles the library and runs its unit and integration checks. A source build is useful when changing Ashnav; consuming the published dependency does not require it.</p>` },
-        { id: 'runtime-packaging', title: 'Provide the library at runtime', html: `<p>A dependency declaration makes classes available during the build. Your deployed application also needs Ashnav and its runtime dependencies. For a Minecraft plugin, see <a href="#/minecraft-integration">Minecraft integration</a> for a Maven Shade example.</p>${cards([['quick-start', 'Run the corridor example', 'Compile a full Java class and inspect its route.'], ['troubleshooting', 'Resolve setup problems', 'Check missing classes, version conflicts, and query errors.']])}` }
+        { id: 'runtime-packaging', title: 'Provide the library at runtime', html: `<p>A dependency declaration makes classes available during the build. Your deployed application also needs Ashnav and its runtime dependencies.</p>${cards([['quick-start', 'Run the corridor example', 'Compile a full Java class and inspect its route.'], ['troubleshooting', 'Resolve setup problems', 'Check missing classes, version conflicts, and query errors.']])}` }
       ]
     },
     {
@@ -287,48 +264,10 @@ dependencies {
       description: 'Run complete Java examples for weighted routes, movement policies, coordinate frames, and stepped search.',
       intro: `<p>Each class below compiles in the consumer project from <a href="#/installation">Installation</a>. Save it under <code>src/main/java</code>. Use the <a href="#/quick-start">quick start commands</a> and replace the main class name with the example’s name.</p>`,
       sections: [
+        { id: 'route-playground', title: 'Build and inspect your own route', html: `<p>Use a small warehouse floor to try walls, costly cells, and different endpoints. The panel shows the graph produced by your choices and exports an equivalent weighted adjacency graph as a complete Java class.</p><div data-diagram="route-playground"></div>` },
         { id: 'weighted-routes', title: 'Compare edge count with traversal cost', html: `<p>Three nodes form a directed graph: S is node 0, A is node 1, and G is node 2. The direct edge costs 10. Passing through A costs 1 + 1.</p>${weightedFigure}${code(weightedSource, 'java', 'WeightedRouteExample.java')}${code('BFS nodes=[0, 2], cost=1.0\nDijkstra nodes=[0, 1, 2], cost=2.0\nA* nodes=[0, 1, 2], cost=2.0', 'output', 'Expected output')}<p>BFS minimizes the number of edges and ignores their weights. Dijkstra minimizes the sum of weights. A* uses zero estimates here, a valid lower bound that does not require geometric assumptions.</p><p>The graph has no reverse edges. A search from G to S returns <code>UNREACHABLE</code>. See <a href="#/solvers">Solvers</a> before supplying a nonzero A* heuristic.</p>` },
         { id: 'controlled-detour', title: 'Compose a policy, frame, and session', html: `<p>This example uses a 3 × 1 × 2 grid. A policy permits an edge only when X stays equal or increases. Entering cell <code>(1, 0, 0)</code> costs 5; every other edge costs 1.</p><p>The grid belongs to a frame translated by <code>(10, 0, 20)</code>. The start is given in that frame; the goal is given in world coordinates. Both map to IDs preserved by the policy graph.</p>${detourFigure}${code(controlledSource, 'java', 'AshnavControlledSearchExample.java')}${code('detour cost=4.0', 'output', 'Expected output')}<p>The selected route uses nodes <code>[0, 3, 4, 5, 2]</code>. It costs 4 instead of the direct route’s cost of 6. Returning from goal to start is impossible because it requires decreasing X.</p>` },
         { id: 'example-lifecycle', title: 'Adapt the example to an event loop', html: `<p>The example’s <code>while</code> loop runs to completion. In an application, keep the session between callbacks and call <code>advance(2)</code> when your scheduler assigns work. A budget of 2 means at most two queue removals, including stale entries.</p><p>That budget is not two milliseconds or two visited nodes. A step can process a whole outgoing row. Session creation, callback execution time, and final route construction are outside the queue-pop bound.</p><p>Keep the graph, policies, and captured data stable until the session finishes. Use one thread to advance or cancel each session. The separate cancellation example demonstrates that a cancelled session stays <code>CANCELLED</code> and has no completed path result.</p>${cards([['policies', 'Movement policies', 'Filter directed edges and assign costs without changing node IDs.'], ['sessions', 'Search sessions', 'Handle completion, failure, cancellation, and work counters.'], ['frames', 'Coordinate frames', 'Understand the navigator’s captured transforms.'], ['limits', 'Limits and performance', 'Estimate work and memory for your graph.']])}` }
-      ]
-    },
-    {
-      id: 'minecraft-integration', category: 'Pathfinding', title: 'Minecraft integration', kind: 'guide', readingTime: 7,
-      description: 'Embed Ashnav in your plugin and define the world, movement, and scheduling behavior around its search API.',
-      intro: `<p>Ashnav 2.0.0 provides a Java search library. It contains no Bukkit or Paper adapter and declares no Minecraft server compatibility range. The examples here explain integration responsibilities; they do not represent a tested live-server plugin.</p>`,
-      sections: [
-        { id: 'bundle-library', title: 'Bundle the runtime classes', html: `<p>Add the dependency from <a href="#/installation">Installation</a> to your plugin project. If your distribution uses a single JAR, shade Ashnav and its transitive runtime dependencies into that JAR. Your plugin supplies its own platform entry point and descriptor.</p><p>For Maven, merge the following plugin into your existing <code>build/plugins</code>. This is a consumer build example; it is not part of Ashnav’s published POM.</p>${code(`<plugin>
-  <groupId>org.apache.maven.plugins</groupId>
-  <artifactId>maven-shade-plugin</artifactId>
-  <version>3.6.2</version>
-  <executions>
-    <execution>
-      <phase>package</phase>
-      <goals>
-        <goal>shade</goal>
-      </goals>
-      <configuration>
-        <createDependencyReducedPom>false</createDependencyReducedPom>
-        <transformers>
-          <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-          <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
-          <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
-        </transformers>
-      </configuration>
-    </execution>
-  </executions>
-</plugin>`, 'xml', 'pom.xml · build/plugins')}<p>Shade runs during <code>package</code> and bundles eligible dependencies. Keep your server API in the scope required by your platform instead of packaging server classes. The <a href="https://maven.apache.org/plugins/maven-shade-plugin/examples/includes-excludes.html">Apache Shade guide</a> explains dependency selection. The <a href="https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html">resource transformer reference</a> describes service, license, and notice handling.</p><p>Inspect the final JAR and resolved dependency tree before deployment. If you relocate library packages for isolation, apply one consistent relocation strategy across the Blackframe libraries and your references to them.</p>` },
-        { id: 'model-movement', title: 'Define valid movement', html: `${table(['Your plugin supplies', 'Ashnav uses it as'], [
-          ['A finite captured region or an explicit set of navigation locations.', 'Grid cells or integer graph nodes.'],
-          ['A rule for accepting a cell.', 'The <code>GridWalkabilityGraph3</code> predicate.'],
-          ['Checks for support, headroom, clearance, and allowed movement direction.', 'Directed edges or an <code>IntEdgePredicate</code>.'],
-          ['A cost model for permitted moves.', 'Finite, non-negative edge costs for Dijkstra or A*.'],
-          ['Conversion from your world positions to <code>Vector3</code>.', 'World-point input for a navigator.'],
-          ['Entity control and a response to terrain changes.', 'Application behavior after a route is found.']
-        ])}${note('Endpoint walkability is only one condition', '<p><code>N18</code> and <code>N26</code> connect diagonal endpoints even if intermediate side cells are blocked. <code>N6</code> removes those diagonal moves, but still does not validate body clearance or support. Add movement checks through a policy or your own graph.</p>')}<p>The <a href="#/examples">controlled detour example</a> shows how an edge policy changes a route while preserving the grid mapping. That policy is an illustrative restriction, not a complete Minecraft movement model.</p>` },
-        { id: 'snapshot-lifecycle', title: 'Capture and replace a navigation model', html: `<ol class="steps list-none pl-0 [counter-reset:steps]"><li class="relative m-0 pb-[25px] pl-[43px] max-[680px]:pl-[37px]"><h3>Capture the required world data</h3><p>Read terrain in the execution context allowed by your server platform. Store the finite data needed by your predicate and movement policy.</p></li><li class="relative m-0 pb-[25px] pl-[43px] max-[680px]:pl-[37px]"><h3>Construct a stable graph</h3><p>Keep the grid and predicate unchanged during construction. <code>GridWalkabilityGraph3</code> then retains its own fixed cell/node mapping.</p></li><li class="relative m-0 pb-[25px] pl-[43px] max-[680px]:pl-[37px]"><h3>Search the captured model</h3><p>Bind the solver to the same traversal graph as the navigator. Retain stable policy data through the entire query, including pauses between session steps.</p></li><li class="relative m-0 pb-[25px] pl-[43px] max-[680px]:pl-[37px]"><h3>Validate and apply the route</h3><p>Map IDs through the original mapping. Check that the route still fits the current world before your plugin starts or continues movement.</p></li><li class="relative m-0 pb-[25px] pl-[43px] max-[680px]:pl-[37px]"><h3>Replace changed models together</h3><p>Rebuild the graph, solver, and navigator when your captured region changes. Associate results with the model that produced them; rebuilt node IDs can mean different cells.</p></li></ol><p>The <a href="#/grid-graphs">grid snapshot</a> captures accepted cells. A <a href="#/policies">policy view</a> retains callbacks and their referenced data. A <a href="#/frames">frame navigator</a> captures transforms. These three lifetimes must agree with your query.</p>` },
-        { id: 'schedule-search', title: 'Choose when search work runs', html: `<p>Blocking <code>findPath</code> runs until completion. Use <code>startSearch</code> and a <a href="#/sessions">search session</a> when your plugin needs to divide work across scheduled callbacks.</p><p>Schedule work using your platform’s API. Ashnav supplies neither a scheduler nor an asynchronous wrapper. A session is thread-confined; its queue-pop budget does not limit elapsed time or heap use.</p><p>Independent queries can share a solver only when the graph is safe to share and callbacks are thread-safe. This property does not make world APIs or mutable grids safe to access from another thread.</p>` },
-        { id: 'integration-checks', title: 'Check your integration', html: `<p>First run the <a href="#/quick-start">plain Java corridor</a> to confirm dependency resolution. Then test your plugin’s own captured region, movement rules, cancellation path, and response to changed terrain.</p><p>Include missing endpoints, disconnected valid cells, diagonal clearance, and a route that becomes invalid before movement completes. These checks validate your adapter and world model. Ashnav’s graph and integration tests do not establish live-server compatibility for your plugin.</p>` }
       ]
     }
   );

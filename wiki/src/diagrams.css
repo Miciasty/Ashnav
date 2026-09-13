@@ -1,5 +1,4 @@
-/* SVG palette and geometry stay here. Layout, spacing and control typography
-   use Tailwind utilities in assets/diagrams.js. */
+/* Shared static SVG palette. Interactive scene styles live in labs.css. */
 @layer components {
   .nav-figure svg { display: block; width: 100%; height: auto; margin: 1rem 0; }
   .nav-figure svg text { fill: var(--text); font: 13px var(--mono); }

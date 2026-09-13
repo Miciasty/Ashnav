@@ -8,7 +8,7 @@ window.WIKI_CONFIG = {
   navigation: [
     { title: 'Getting started', items: ['overview', 'installation', 'quick-start'] },
     { title: 'Navigation model', items: ['graph-model', 'grid-graphs', 'policies', 'coordinates', 'frames'] },
-    { title: 'Pathfinding', items: ['solvers', 'sessions', 'results', 'examples', 'minecraft-integration'] },
+    { title: 'Pathfinding', items: ['solvers', 'sessions', 'results', 'examples'] },
     { title: 'Reference', items: ['api-reference', 'limits', 'glossary', 'releases', 'troubleshooting'] }
   ],
   links: {

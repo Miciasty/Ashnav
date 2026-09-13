@@ -20,7 +20,7 @@ npm run build
 npm run check:examples
 ```
 
-`build` compiles Tailwind CSS, validates pages and links, checks diagram calculations, and creates `_site`. `check:examples` needs JDK 21 and Maven 3.9+; it resolves the compile dependencies from the project POM, compiles the current Ashnav sources and every standalone Java example, then runs those examples with assertions enabled. Fragments are reported separately. It is not a Minecraft server test.
+`build` compiles Tailwind CSS, validates pages and links, checks diagram calculations, and creates `_site`. `check:examples` needs JDK 21 and Maven 3.9+; it resolves the compile dependencies from the project POM, compiles the current Ashnav sources and every standalone Java example, then runs those examples with assertions enabled. It also compiles three scene exports and checks the browser's adjacency, weights, search results, and captured frames against the Java library. Fragments are reported separately.
 
 The example checker accepts `JAVA_HOME`, `MAVEN_EXECUTABLE`, and `MAVEN_REPO_LOCAL` environment variables. Do not use Java 8 from an older system PATH. Generated validation files stay in the ignored `.checks` directory.
 
@@ -30,12 +30,13 @@ Use `npm run dev` to rebuild CSS while editing and serve the preview. Refresh th
 | --- | --- |
 | `content/site.js` | Product version, navigation, and verified destinations. |
 | `content/helpers.js` | Shared article markup and escaped source examples. |
-| `content/guides.js` | Installation, quick start, examples, and Minecraft integration. |
+| `content/guides.js` | Installation, quick start, and runnable examples. |
 | `content/spatial.js` | Grid graphs, world mapping, and captured frames. |
 | `content/reference.js` | Graph/search contracts, API, troubleshooting, limits, and glossary. |
-| `assets/diagrams.js` | Accessible neighborhood and world-mapping controls. |
+| `assets/labs.js` | Eight interactive scenes with keyboard controls and Reset. |
 | `assets/diagram-models.js` | The finite mathematical models used in those figures. |
-| `check.mjs` / `check-diagrams.mjs` | Article/link validation and diagram boundary checks. |
+| `diagram-cases.mjs` | Shared search fixtures and the generated Java comparison program. |
+| `check.mjs` / `check-diagrams.mjs` | Article/link validation, search scenarios, and coordinate checks. |
 | `check-examples.mjs` | Compilation and execution of rendered Java examples. |
 | `build.mjs` | Copies browser files and license notices into `_site`. |
 
@@ -56,4 +57,4 @@ Pull requests build and validate the site without deploying. The deploy job runs
 
 ## Browser review
 
-Check every navigation entry, page/section links, search with Ctrl+K or `/`, Escape, code copying, and both themes. Inspect the mobile drawer and table overflow. For figures, check each neighborhood, mapping boundaries, and Reset. The site uses no analytics, remote fonts, or runtime CDN.
+Check every navigation entry, page/section links, search with Ctrl+K or `/`, Escape, code copying, and both themes. Inspect the mobile drawer and table overflow. For interactive figures, test snapshot rebuilding, reverse edges, all neighborhoods, entry costs, XYZ boundaries, captured/live frames, an overestimating heuristic, and Reset. In the warehouse, test each brush, a sealed route, search steps, and the Java export. Camera controls must not change model results. The site uses no analytics, remote fonts, or runtime CDN.

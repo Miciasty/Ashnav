@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import vm from 'node:vm';
 import {spawnSync} from 'node:child_process';
+import {javaDiagramOracle} from './diagram-cases.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const repository = path.resolve(root, '..');
@@ -112,6 +113,15 @@ const quoteJavaArgument = value => `"${value.replaceAll('\\', '\\\\').replaceAll
 
 async function main() {
   const {examples, fragments} = await readExamples();
+  const authoredCount=examples.length;
+  const models=vm.createContext({window:{}});
+  vm.runInContext(await readFile(path.join(root,'assets/diagram-models.js'),'utf8'),models);
+  const M=models.window.ASHNAV_MODELS;
+  for(const [i,algorithm] of ['BFS','Dijkstra','A*'].entries()) {
+    const scene=M.presets.warehouse,g=M.grid(7,1,5,scene.blocked,'N18',scene.entry),name=`WarehouseExport${i}`;
+    examples.push({name,className:name,packageName:'',filename:`${name}.java`,source:M.javaGraph(g,g.node(0,0,2),g.node(6,0,2),algorithm,name),pages:['generated scene export']});
+  }
+  examples.push({name:'WikiDiagramOracle',className:'WikiDiagramOracle',packageName:'',filename:'WikiDiagramOracle.java',source:javaDiagramOracle(models.window.ASHNAV_MODELS),pages:['interactive visualizations']});
   await mkdir(checks, {recursive: true});
   const classpathFile = path.join(checks, 'classpath.txt');
   console.log('Resolving the compile dependencies declared by pom.xml…');
@@ -141,7 +151,7 @@ async function main() {
     const output = checkedProcess(javaExecutable('java'), ['-ea', '-cp', classpath, example.className]);
     console.log(`PASS ${example.pages.join(', ')}: ${example.filename}${output ? `\n${output}` : ''}`);
   }
-  console.log(`Compiled current Ashnav source and ran ${examples.length} standalone WIKI examples with assertions enabled. ${fragments} Java fragment(s) are not standalone programs.`);
+  console.log(`Compiled current Ashnav source and ran ${authoredCount} standalone WIKI examples, 3 generated Java exports, and the visualization oracle with assertions enabled. ${fragments} Java fragment(s) are not standalone programs.`);
 }
 
 main().catch(error => {

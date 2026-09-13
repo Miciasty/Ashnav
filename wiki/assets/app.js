@@ -203,6 +203,13 @@
         prepareCodeBlocks();
         if (window.WikiDiagrams) disposeDiagrams = window.WikiDiagrams.mount(article);
         all('figure svg', article).forEach(svg => {
+          if (svg.closest('.nav-lab')) {
+            const stage = svg.closest('.lab-stage');
+            stage.tabIndex = 0;
+            stage.setAttribute('role', 'region');
+            stage.setAttribute('aria-label', 'Interactive diagram; scroll horizontally on narrow screens');
+            return;
+          }
           const viewport = document.createElement('div');
           viewport.className = 'figure-viewport';
           viewport.tabIndex = 0;

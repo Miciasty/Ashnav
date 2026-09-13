@@ -10,7 +10,7 @@ Paths below are relative to the Ashnav repository unless another repository is n
 
 | Articles | Primary source |
 | --- | --- |
-| Overview, installation, integration | `pom.xml`, `README.md`, `LICENSE`, `NOTICE`; absence of Bukkit dependency and server descriptor in library sources. |
+| Overview, installation | `pom.xml`, `README.md`, `LICENSE`, `NOTICE`; absence of Bukkit dependency and server descriptor in library sources. |
 | Graph model, policies | `api/graph/*.java`, `implementation/graph/*.java` beneath `src/main/java/nsk/nu/ashnav`. |
 | Grid graphs | `api/grid/*.java`, `implementation/grid/GridWalkabilityGraph3.java`, `IntArrayGrid3i.java`, `GridDimensions.java`. |
 | Solvers, sessions | `api/path/*.java`, `implementation/path/*.java`. |
@@ -30,17 +30,17 @@ Use **node**, **directed edge**, **edge cost**, **walkable cell**, **graph snaps
 
 `npm run build` validates article IDs, section links, local assets, publication identity, coverage of navigation, and the finite diagram models. `npm run check:examples` compiles the local Ashnav source and standalone documentation examples with the POM's dependencies, then executes them. These checks do not launch a Minecraft server, validate a Bukkit integration, or benchmark tick latency.
 
-The neighborhood figure illustrates membership, not Ashgrid's offset iteration order. The mapping figure limits inputs to ordinary finite values; it is not a complete reimplementation of Ashspace's numeric validation and underflow rules. Fixed frame diagrams identify their projection and simplified scale.
+The neighborhood figure illustrates membership. The finite search models use the dependency's offset order and compare full adjacency rows and costs against Java. Mapping inputs cover ordinary finite values; the browser does not reproduce Ashspace's complete numeric validation and underflow rules. The frame lab separates camera projection, live pose, and captured pose. Rotation is about positive Y; costs remain in cell units. Search playback shows processed nodes, not the session queue-pop budget. The browser does not execute Ashnav itself.
 
 Retain the vendored Prism MIT license and provenance. The build includes Ashnav's Apache-2.0 license and NOTICE with the runtime files. The original WIKI shell/style sources are retained locally so future changes can be rebuilt without the shared workspace template.
 
 ## Verification on 2026-09-13
 
-- PASS: 18 pages, 83 sections, 65 internal content links, navigation, asset presence, JavaScript syntax, and version identity.
-- PASS: nine standalone Java programs compiled with JDK 21 against current Ashnav source and the POM's dependencies, then executed with assertions. Eleven Java fragments are intentionally not standalone programs.
-- PASS: neighborhood counts and diagonal membership, ordinary cell membership, negative coordinates, and excluded upper boundaries in the browser diagram models.
-- PASS: all 18 routes rendered at desktop width and at a 390 × 844 mobile viewport without document-level horizontal overflow.
-- PASS: dark/light themes, search, keyboard result selection, Escape, mobile navigation, code copying, diagram selection/reset, and upper-boundary control.
+- PASS: 17 pages, 78 sections, 54 internal content links, navigation, asset presence, JavaScript syntax, and version identity.
+- PASS: nine authored Java programs and three generated warehouse exports compiled with JDK 21 against current Ashnav source and the POM's dependencies, then executed. Eleven authored Java fragments are intentionally not standalone programs.
+- PASS: 102 search scenarios checked against Java for adjacency order, edge weights, node counts, status, and route cost; 15 frame capture/rotation scenarios checked against Java. Model checks also cover route validity, neighborhood counts, negative coordinates, half-open boundaries, and inverse transforms.
+- PASS: all 17 routes rendered at desktop width and at a 390 × 844 mobile viewport without document-level horizontal overflow. Wide SVGs scroll inside their own keyboard-focusable region; the warehouse board fits the mobile width.
+- PASS: dark/light themes, snapshot rebuild and ID changes, directed return edges, neighborhood/layer selection, penalties and reverse policies, boundary/reset controls, frame refresh, camera independence, and inadmissible A* behavior. Warehouse editing, search steps, scene switching, and the copy-success state were exercised in the browser.
 - PASS: the generated site loaded and refreshed beneath `/_site/` with local assets and syntax highlighting; browser warning/error log remained empty.
 
 The build was performed with Node.js 24.14.0 and Tailwind CSS 4.3.3. The locked development dependencies were available in the supplied template. This record does not claim a deployed Pages URL or a live Minecraft server test.
