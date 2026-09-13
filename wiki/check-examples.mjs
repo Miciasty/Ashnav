@@ -5,6 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import {spawnSync} from 'node:child_process';
 import {javaDiagramOracle} from './diagram-cases.mjs';
+import {towerModels,javaTowerOracle} from './check-tower.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const repository = path.resolve(root, '..');
@@ -122,6 +123,7 @@ async function main() {
     examples.push({name,className:name,packageName:'',filename:`${name}.java`,source:M.javaGraph(g,g.node(0,0,2),g.node(6,0,2),algorithm,name),pages:['generated scene export']});
   }
   examples.push({name:'WikiDiagramOracle',className:'WikiDiagramOracle',packageName:'',filename:'WikiDiagramOracle.java',source:javaDiagramOracle(models.window.ASHNAV_MODELS),pages:['interactive visualizations']});
+  examples.push({name:'WikiTowerOracle',className:'WikiTowerOracle',packageName:'',filename:'WikiTowerOracle.java',source:javaTowerOracle(await towerModels()),pages:['3D tower visualization']});
   await mkdir(checks, {recursive: true});
   const classpathFile = path.join(checks, 'classpath.txt');
   console.log('Resolving the compile dependencies declared by pom.xml…');
@@ -151,7 +153,7 @@ async function main() {
     const output = checkedProcess(javaExecutable('java'), ['-ea', '-cp', classpath, example.className]);
     console.log(`PASS ${example.pages.join(', ')}: ${example.filename}${output ? `\n${output}` : ''}`);
   }
-  console.log(`Compiled current Ashnav source and ran ${authoredCount} standalone WIKI examples, 3 generated Java exports, and the visualization oracle with assertions enabled. ${fragments} Java fragment(s) are not standalone programs.`);
+  console.log(`Compiled current Ashnav source and ran ${authoredCount} standalone WIKI examples, 3 generated Java exports, and both visualization oracles with assertions enabled. ${fragments} Java fragment(s) are not standalone programs.`);
 }
 
 main().catch(error => {

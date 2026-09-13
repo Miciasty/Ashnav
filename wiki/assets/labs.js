@@ -283,6 +283,6 @@
       navigator.clipboard.writeText(source).then(()=>{const b=host.querySelector('[data-action="copy"]');if(b)b.textContent='Copied';}).catch(()=>{const b=host.querySelector('[data-action="copy"]');if(b)b.textContent='Select the code to copy';});
     }});
   }
-  const renderers={'corridor':corridor,'directed-graph':directed,'neighborhood':neighborhood,'policy-detour':policy,'world-mapping':mapping,'frame-capture':frames,'solver-comparison':solvers,'route-playground':playground};
-  window.WikiDiagrams={mount(root){for(const host of root.querySelectorAll('[data-diagram]'))renderers[host.dataset.diagram]?.(host);return ()=>{};}};
+  const renderers={'corridor':corridor,'directed-graph':directed,'neighborhood':neighborhood,'policy-detour':policy,'world-mapping':mapping,'frame-capture':frames,'solver-comparison':solvers,'route-playground':playground,'height-path':host=>window.WikiTower.mount(host)};
+  window.WikiDiagrams={mount(root){const disposers=[];for(const host of root.querySelectorAll('[data-diagram]')){const dispose=renderers[host.dataset.diagram]?.(host);if(typeof dispose==='function')disposers.push(dispose);}return ()=>disposers.forEach(dispose=>dispose());}};
 })();

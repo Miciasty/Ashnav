@@ -35,7 +35,10 @@ Use `npm run dev` to rebuild CSS while editing and serve the preview. Refresh th
 | `content/reference.js` | Graph/search contracts, API, troubleshooting, limits, and glossary. |
 | `assets/labs.js` | Eight interactive scenes with keyboard controls and Reset. |
 | `assets/diagram-models.js` | The finite mathematical models used in those figures. |
+| `assets/tower-model.js` / `assets/tower-scene.js` | The 16 × 16 terrain, surface graph, movable barrier, camera, and route-height view. |
+| `content/tower-example.js` | The complete Java counterpart of the tower scene. |
 | `diagram-cases.mjs` | Shared search fixtures and the generated Java comparison program. |
+| `check-tower.mjs` | Tower movement invariants and comparison with the Java example for 18 scenarios. |
 | `check.mjs` / `check-diagrams.mjs` | Article/link validation, search scenarios, and coordinate checks. |
 | `check-examples.mjs` | Compilation and execution of rendered Java examples. |
 | `build.mjs` | Copies browser files and license notices into `_site`. |
@@ -58,3 +61,5 @@ Pull requests build and validate the site without deploying. The deploy job runs
 ## Browser review
 
 Check every navigation entry, page/section links, search with Ctrl+K or `/`, Escape, code copying, and both themes. Inspect the mobile drawer and table overflow. For interactive figures, test snapshot rebuilding, reverse edges, all neighborhoods, entry costs, XYZ boundaries, captured/live frames, an overestimating heuristic, and Reset. In the warehouse, test each brush, a sealed route, search steps, and the Java export. Camera controls must not change model results. The site uses no analytics, remote fonts, or runtime CDN.
+
+The tower scene is the first section of Examples (`#/examples?section=tower-route`). Test all three barrier positions, animation/pause, the previous-route overlay, the height inspector, and the no-step policy. Barrier playback is opt-in and uses discrete snapshots. Leaving the article disposes its timer. It does not provide continuous collision prediction or incremental replanning. The SVG scene fits mobile width; camera zoom and rotation remain separate from model inputs.

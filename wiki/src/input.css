@@ -5,10 +5,12 @@
 @import "./syntax-code.css";
 @import "./diagrams.css";
 @import "./labs.css";
+@import "./tower.css";
 
 @source "../index.html";
 @source "../assets/app.js";
 @source "../assets/labs.js";
+@source "../assets/tower-scene.js";
 @source "../content";
 
 @theme inline {

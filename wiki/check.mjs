@@ -68,7 +68,7 @@ for (const page of pages) {
     else if(section&&!sections.get(id)?.has(section)) errors.push(`${page.id}: link to unknown section ${id}/${section}`);
   }
   for (const match of html.matchAll(/data-diagram=["']([^"']+)["']/g)) {
-    if(!['corridor','directed-graph','neighborhood','policy-detour','world-mapping','frame-capture','solver-comparison','route-playground'].includes(match[1])) errors.push(`${page.id}: unknown diagram ${match[1]}`);
+    if(!['corridor','directed-graph','neighborhood','policy-detour','world-mapping','frame-capture','solver-comparison','route-playground','height-path'].includes(match[1])) errors.push(`${page.id}: unknown diagram ${match[1]}`);
   }
   for (const match of html.matchAll(/(?:src|poster)=["']([^"']+)["']/g)) {
     if (/^(https?:|data:)/.test(match[1])) continue;

@@ -13,6 +13,7 @@ Paths below are relative to the Ashnav repository unless another repository is n
 | Overview, installation | `pom.xml`, `README.md`, `LICENSE`, `NOTICE`; absence of Bukkit dependency and server descriptor in library sources. |
 | Graph model, policies | `api/graph/*.java`, `implementation/graph/*.java` beneath `src/main/java/nsk/nu/ashnav`. |
 | Grid graphs | `api/grid/*.java`, `implementation/grid/GridWalkabilityGraph3.java`, `IntArrayGrid3i.java`, `GridDimensions.java`. |
+| 3D tower example | `GridWalkabilityGraph3`, `PolicyWeightedIntGraph`, and the built-in pathfinders. The terrain layout, candidate-surface extraction, barrier positions, and step rule are application code in `content/tower-example.js`. |
 | Solvers, sessions | `api/path/*.java`, `implementation/path/*.java`. |
 | Results | `PathSearchResult.java`, `PathResult.java`, `PathStatus.java`, session implementations. |
 | World coordinates | `SpaceMappedGridNavigator3.java`; Ashspace 2.0.0 `GridSpaceMapper3`; Ashcore 1.2.0 `Vector3`. |
@@ -32,13 +33,17 @@ Use **node**, **directed edge**, **edge cost**, **walkable cell**, **graph snaps
 
 The neighborhood figure illustrates membership. The finite search models use the dependency's offset order and compare full adjacency rows and costs against Java. Mapping inputs cover ordinary finite values; the browser does not reproduce Ashspace's complete numeric validation and underflow rules. The frame lab separates camera projection, live pose, and captured pose. Rotation is about positive Y; costs remain in cell units. Search playback shows processed nodes, not the session queue-pop budget. The browser does not execute Ashnav itself.
 
+The tower uses a 16 × 9 × 16 volume with a base surface at Y=1 and a roof at Y=6. The application supplies supported foot cells with two clear cells, excludes obstacle roofs, and filters N18 edges to adjacent XZ columns with an absolute Y difference no greater than one. The scene has no overhangs. Its line joins cell centers; it is not an entity controller. A barrier change captures a fresh graph and runs a new query. Previous routes are retained as coordinates from the old snapshot, not node IDs reinterpreted in the new mapping. Camera changes never recapture the model.
+
 Retain the vendored Prism MIT license and provenance. The build includes Ashnav's Apache-2.0 license and NOTICE with the runtime files. The original WIKI shell/style sources are retained locally so future changes can be rebuilt without the shared workspace template.
 
 ## Verification on 2026-09-13
 
-- PASS: 17 pages, 78 sections, 54 internal content links, navigation, asset presence, JavaScript syntax, and version identity.
-- PASS: nine authored Java programs and three generated warehouse exports compiled with JDK 21 against current Ashnav source and the POM's dependencies, then executed. Eleven authored Java fragments are intentionally not standalone programs.
+- PASS: 17 pages, 79 sections, 56 internal content links, navigation, asset presence, JavaScript syntax, and version identity.
+- PASS: ten authored Java programs and three generated warehouse exports compiled with JDK 21 against current Ashnav source and the POM's dependencies, then executed. Eleven authored Java fragments are intentionally not standalone programs.
 - PASS: 102 search scenarios checked against Java for adjacency order, edge weights, node counts, status, and route cost; 15 frame capture/rotation scenarios checked against Java. Model checks also cover route validity, neighborhood counts, negative coordinates, half-open boundaries, and inverse transforms.
+- PASS: 18 tower scenarios checked against the executable Java counterpart for cell-to-ID mapping, directed edge order, weights, costs, and reachability. Model checks cover collision exclusion, support, headroom, stair limits, five-block ascent, rerouting around the barrier, and stability of old snapshots.
+- PASS: tower camera drag and keyboard controls, route-step inspection, previous-route overlay, solver selection, barrier playback/pause, and timer cleanup on article navigation. The scene fits a 390 × 844 viewport and was visually checked in light and dark themes.
 - PASS: all 17 routes rendered at desktop width and at a 390 × 844 mobile viewport without document-level horizontal overflow. Wide SVGs scroll inside their own keyboard-focusable region; the warehouse board fits the mobile width.
 - PASS: dark/light themes, snapshot rebuild and ID changes, directed return edges, neighborhood/layer selection, penalties and reverse policies, boundary/reset controls, frame refresh, camera independence, and inadmissible A* behavior. Warehouse editing, search steps, scene switching, and the copy-success state were exercised in the browser.
 - PASS: the generated site loaded and refreshed beneath `/_site/` with local assets and syntax highlighting; browser warning/error log remained empty.

@@ -1,0 +1,80 @@
+@layer components {
+  .tower-lab { --tower-block: #34343f; --tower-face: #262630; --tower-edge: #555562; --tower-crate: #754d52; --tower-gate: #8a6b37; }
+  html[data-theme="light"] .tower-lab { --tower-block: #d5d7de; --tower-face: #aeb3c0; --tower-edge: #878d9c; --tower-crate: #d6a4a7; --tower-gate: #d7b779; }
+  .tower-lab .tower-model-controls { align-items: center; }
+  .tower-lab .tower-actions { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 0 100%; }
+  .tower-lab .tower-actions button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .tower-lab .tower-stage { padding: 0; position: relative; overflow: hidden; user-select: none; }
+  .article .tower-lab svg { min-width: 0; width: 100%; cursor: grab; touch-action: pan-y; }
+  .article .tower-lab svg:active { cursor: grabbing; }
+  .tower-lab .tower-stage:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+  .tower-lab .tower-stage-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 10px; position: relative; z-index: 1; padding: 12px 16px 0; font: 10px/1.6 var(--mono); color: var(--muted); }
+  .tower-lab .tower-capture { color: var(--text); }
+  .tower-lab .tower-scene-hint { padding: 0 16px 12px; color: var(--muted); font-size: 10px; }
+  .tower-lab .tower-voxel { stroke: var(--tower-edge); stroke-width: .6; stroke-linejoin: round; fill: var(--tower-block); }
+  .tower-lab .tower-voxel.side-x { fill: var(--tower-face); }
+  .tower-lab .tower-voxel.side-z { fill: color-mix(in srgb,var(--tower-face) 78%,var(--bg)); }
+  .tower-lab .tower-floor.top { fill: color-mix(in srgb,var(--surface) 70%,var(--tower-block)); }
+  .tower-lab .tower-crate.top { fill: var(--tower-crate); }
+  .tower-lab .tower-crate.side-x { fill: color-mix(in srgb,var(--tower-crate) 70%,var(--bg)); }
+  .tower-lab .tower-crate.side-z { fill: color-mix(in srgb,var(--tower-crate) 55%,var(--bg)); }
+  .tower-lab .tower-barrier.top { fill: var(--tower-gate); stroke: var(--lab-warm); }
+  .tower-lab .tower-barrier.side-x { fill: color-mix(in srgb,var(--tower-gate) 85%,var(--bg)); stroke: var(--lab-warm); }
+  .tower-lab .tower-barrier.side-z { fill: color-mix(in srgb,var(--tower-gate) 60%,var(--bg)); stroke: var(--lab-warm); }
+  .tower-lab .tower-route-line, .tower-lab .tower-route-halo, .tower-lab .tower-previous-line { fill: none; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; vector-effect: non-scaling-stroke; }
+  .tower-lab .tower-route-line { stroke: var(--accent); stroke-width: 2.8; }
+  .tower-lab .tower-route-halo { stroke: var(--bg); stroke-width: 5; opacity: .65; }
+  .tower-lab .tower-previous-line { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 5; opacity: .6; }
+  .tower-lab .tower-beacon { --marker: var(--lab-start); }
+  .tower-lab .tower-beacon.goal { --marker: var(--lab-goal); }
+  .tower-lab .tower-beacon rect { fill: var(--bg); stroke: var(--marker); stroke-width: 2; }
+  .tower-lab .tower-beacon path { fill: none; stroke: var(--marker); stroke-width: 2; }
+  .tower-lab .tower-beacon circle { fill: var(--marker); }
+  .tower-lab .tower-beacon text { font: 23px var(--mono); fill: var(--marker); }
+  .tower-lab .tower-inspected { fill: var(--text); stroke: var(--accent); stroke-width: 2; }
+  .tower-lab .tower-inspected-halo { fill: var(--accent); opacity: .22; }
+  .tower-lab .tower-axis { --axis: var(--diagram-x); }
+  .tower-lab .tower-axis.y { --axis: var(--diagram-y); }
+  .tower-lab .tower-axis.z { --axis: var(--diagram-z); }
+  .tower-lab .tower-axis path { fill: none; stroke: var(--axis); stroke-width: 1.5; }
+  .tower-lab .tower-axis text { fill: var(--axis); font: 18px var(--mono); }
+  .tower-lab .tower-camera { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 16px; border-block: 1px solid var(--border); }
+  .tower-lab .tower-control-title { color: var(--muted); font-size: 11px; }
+  .tower-lab .tower-camera label { flex-basis: 80px; }
+  .tower-lab .tower-legend { display: flex; flex-wrap: wrap; gap: 9px 16px; align-items: center; font-size: 10px; color: var(--muted); padding: 12px 16px; }
+  .tower-lab .tower-legend label { flex-direction: row; align-items: center; font-size: 10px; gap: 6px; flex: 1 1 220px; }
+  .tower-lab .tower-key:before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 2px; background: var(--accent); }
+  .tower-lab .tower-key.start:before { background: var(--lab-start); }
+  .tower-lab .tower-key.goal:before { background: var(--lab-goal); }
+  .tower-lab .tower-key.crate:before { background: var(--tower-crate); }
+  .tower-lab .tower-key.barrier:before { background: var(--lab-warm); }
+  .tower-lab .tower-profile { padding: 16px; }
+  .tower-lab .tower-profile-heading { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; font-size: 11px; }
+  .tower-lab .tower-profile-heading span { color: var(--muted); }
+  .tower-lab .tower-height-bars { display: flex; align-items: end; gap: 3px; height: 88px; margin: 12px 0 16px; padding-top: 18px; border-bottom: 1px solid var(--border); }
+  .tower-lab .tower-height-bars button { flex: 1 1 0; position: relative; min-width: 0; height: 100%; min-height: 0; padding: 0; border: 0; background: transparent; font: 10px var(--mono); }
+  .tower-lab .tower-height-bars button:before { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: var(--height); border: 1px solid color-mix(in srgb,var(--accent) 45%,var(--border)); background: var(--accent-soft); border-radius: 3px 3px 0 0; }
+  .tower-lab .tower-height-bars button span { position: absolute; inset-inline: 0; bottom: calc(var(--height) + 3px); color: var(--muted); }
+  .tower-lab .tower-height-bars button[aria-pressed="true"]:before { background: var(--accent); border-color: var(--accent); }
+  .tower-lab .tower-height-bars button[aria-pressed="true"] span { color: var(--accent); }
+  .tower-lab .tower-inspect { display: grid; grid-template-columns: auto 1fr; }
+  .tower-lab .tower-inspect output { justify-self: end; }
+  .tower-lab .tower-inspect input { grid-column: 1/-1; }
+  .tower-lab .tower-point-reading { font-family: var(--mono); font-size: 11px; overflow-wrap: anywhere; }
+  .tower-lab .tower-coordinates { max-height: 200px; overflow-y: auto; }
+  .tower-java-example { margin: 24px 0; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; }
+  .tower-java-example summary { cursor: pointer; font-size: 13px; color: var(--text); }
+  .tower-java-example summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  @media (max-width: 600px) {
+    .article .tower-lab .tower-stage:has(svg):after { display: none; }
+    .tower-lab .tower-camera { gap: 12px; }
+    .tower-lab .tower-control-title { flex-basis: 100%; }
+    .tower-lab .tower-camera label { flex-basis: 62px; }
+    .tower-lab .tower-camera button { flex-basis: 100%; }
+    .tower-lab .tower-scene-hint { font-size: 0; }
+    .tower-lab .tower-scene-hint:after { content: 'Use the camera controls to rotate and zoom'; font-size: 10px; }
+    .tower-lab .tower-height-bars { gap: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .tower-lab * { scroll-behavior: auto; } }
+  @media print { .tower-lab .tower-camera, .tower-lab .tower-inspect, .tower-lab .tower-scene-hint { display: none; } }
+}

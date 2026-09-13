@@ -207,7 +207,7 @@
             const stage = svg.closest('.lab-stage');
             stage.tabIndex = 0;
             stage.setAttribute('role', 'region');
-            stage.setAttribute('aria-label', 'Interactive diagram; scroll horizontally on narrow screens');
+            stage.setAttribute('aria-label', svg.closest('.tower-lab') ? '3D tower scene. Arrow keys rotate the camera; Home resets the view.' : 'Interactive diagram; scroll horizontally on narrow screens');
             return;
           }
           const viewport = document.createElement('div');
