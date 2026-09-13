@@ -5,6 +5,10 @@ It separates connectivity, path search and world-coordinate mapping so you can t
 
 Version **2.0.0** is available from [Maven Central](https://central.sonatype.com/artifact/dev.nasaka.blackframe/ashnav/2.0.0).
 
+The illustrated **[Ashnav WIKI](wiki/index.html)** covers installation, graph and grid models,
+search sessions, world coordinates, and the public API. Open it locally or follow the
+[preview and GitHub Pages instructions](wiki/README.md).
+
 ## When to use it
 
 Use Ashnav for graph search or for projecting a small, finite grid into a navigation graph.
